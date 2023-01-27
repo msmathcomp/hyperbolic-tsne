@@ -17,6 +17,7 @@ Highest priority TODOs:
   - Some ideas: time, number of iterations, cost function, embeddings
 - Write a script that runs the grid of experiments defined above.
 - Run the script on a subset of the datasets and verify that it makes sense the results we are getting. Pay special focus to experiment 4.2, which has the highest priority.
+- When the script is working run it on all datasets. See if complete results make sense. Priorities for results analysis are: 4.2 (specially 4.2.1) > 4.3 > 4.1
 
 Other TODOs:
 - Find implementations of competing methods and run our grid of experiments with them.
