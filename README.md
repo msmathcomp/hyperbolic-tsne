@@ -1,5 +1,27 @@
 # Hyperbolic Barnes-Hut tSNE
 
+- Link to data and project details: https://surfdrive.surf.nl/files/index.php/f/12451516489
+
+## Plan for February 2023
+
+Highest priority TODOs:
+- Polish Hyperbolic tSNE code.
+- Get acquainted with Hyperbolic tSNE code. Where are the different components and parameters? Specially those we want to test in the ablation experiment (splitting strategy and einstein vs frechet midpoints).
+  - Define the different experimental conditions. For instance, in experiment 4.2.1 we are interested on early exaggeration only vs grad desc only.
+  - Define sampling strategy for getting differently sized datasets.
+- Make inventory of datasets we want to run our experiments in.
+- Make note of what we want to log.
+  - Per experiment: dataset, size, machine, number of runs per condition, random seed per run 
+  - Per run: number of iterations, time per iteration, cost function per iteration, embedding per iteration
+  - Note: logging this stuff might significantly alter times so we might need to perform two runs, one with and one without logging.
+  - Some ideas: time, number of iterations, cost function, embeddings
+- Write a script that runs the grid of experiments defined above.
+- Run the script on a subset of the datasets and verify that it makes sense the results we are getting. Pay special focus to experiment 4.2, which has the highest priority.
+
+Other TODOs:
+- Find implementations of competing methods and run our grid of experiments with them.
+
+
 ## Related works
 
 Below we list the related works. For each, we list the datasets they used and, if available, provide a link to their implementation.
