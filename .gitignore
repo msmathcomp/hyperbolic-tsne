@@ -25,6 +25,7 @@ venv
 # datasets
 datasets
 build
+results
 *.egg-info
 *.cpp
 *.pyd
