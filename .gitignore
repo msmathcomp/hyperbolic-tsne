@@ -26,6 +26,7 @@ venv
 datasets
 build
 results
+temp
 *.egg-info
 *.cpp
 *.pyd
