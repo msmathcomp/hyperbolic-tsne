@@ -8,12 +8,10 @@
 # Implementation by Chris Moody & Nick Travers
 # See http://homepage.tudelft.nl/19j49/t-SNE.html for reference
 # implementations and papers describing the technique
-
-
 import numpy as np
 cimport numpy as np
 from libc.stdio cimport printf
-from libc.math cimport sqrt, log, acosh, cosh, cos, sin, M_PI, atan, atan2, acos, tanh
+from libc.math cimport sqrt, log, acosh, cosh, cos, sin, M_PI, atan2, tanh, atanh, isnan, fabs, fmin, fmax
 from libc.stdlib cimport malloc, free, realloc
 from cython.parallel cimport prange, parallel
 from libc.string cimport memcpy
@@ -24,9 +22,6 @@ np.import_array()
 
 cdef char* EMPTY_STRING = ""
 
-cdef extern from "math.h":
-    float fabsf(float x) nogil
-
 # Smallest strictly positive value that can be represented by floating
 # point numbers for different precision levels. This is useful to avoid
 # taking the log of zero when computing the KL divergence.
@@ -35,12 +30,17 @@ cdef float FLOAT32_TINY = np.finfo(np.float32).tiny
 # Useful to void division by zero or divergence to +inf.
 cdef float FLOAT64_EPS = np.finfo(np.float64).eps
 
-cdef float EPSILON = 1e-6
+cdef double EPSILON = 1e-5
+cdef double BOUNDARY = 1 - EPSILON
 cdef int RANGE = 0
 cdef int ANGLE = 1
 cdef double MACHINE_EPSILON = np.finfo(np.double).eps
 cdef int TAKE_TIMING = 1
 cdef int AREA_SPLIT = 1
+
+cdef double clamp(double n, double lower, double upper) nogil:
+    cdef double t = lower if n < lower else n
+    return upper if t > upper else t
 
 ##################################################
 # QuadTree
@@ -121,11 +121,6 @@ cdef extern from "time.h":
     clock_t clock() nogil
     double CLOCKS_PER_SEC
 
-cdef extern from "math.h":
-    float fabsf(float x) nogil
-
-    float sqrtf(float x) nogil
-
 
 from cpython cimport Py_INCREF, PyObject, PyTypeObject
 
@@ -163,14 +158,8 @@ cdef DTYPE_t distance_polar(DTYPE_t r, DTYPE_t phi, DTYPE_t r2, DTYPE_t phi2) no
 
         double v0 = r2 * cos(phi2)
         double v1 = r2 * sin(phi2)
-        double uv2 = ((u0 - v0) * (u0 - v0)) + ((u1 - v1) * (u1 - v1))
-        double u2 = u0 * u0 + u1 * u1
-        double v2 = v0 * v0 + v1 * v1
-        double alpha = 1. - max(u2, MACHINE_EPSILON)
-        double beta = 1. - max(v2, MACHINE_EPSILON)
-        double result = acosh( 1. + 2. * uv2 / ( alpha * beta ) )
 
-    return result
+    return distance(u0, u1, v0, v1)
 
 cdef DTYPE_t mid_range(DTYPE_t min_r, DTYPE_t max_r) nogil:
     cdef:
@@ -522,9 +511,9 @@ cdef class _QuadTree:
         cdef bint res = True
         # for i in range(self.n_dimensions):
         #     # Use EPSILON to avoid numerical error that would overgrow the tree
-        #     res &= fabsf(point1[i] - point2[i]) <= EPSILON
-        res &= fabsf((point1[0] * cos(point1[1])) - point2[0]) <= EPSILON
-        res &= fabsf((point1[0] * sin(point1[1])) - point2[1]) <= EPSILON
+        #     res &= fabs(point1[i] - point2[i]) <= EPSILON
+        res &= fabs((point1[0] * cos(point1[1])) - point2[0]) <= EPSILON
+        res &= fabs((point1[0] * sin(point1[1])) - point2[1]) <= EPSILON
         return res
 
 
@@ -629,7 +618,7 @@ cdef class _QuadTree:
         results[idx_d] = 0.
         for i in range(self.n_dimensions):
             results[idx + i] = distance_grad_q(point, cell.barycenter, i)
-            duplicate &= fabsf(results[idx + i]) <= EPSILON
+            duplicate &= fabs(results[idx + i]) <= EPSILON
 
         dist = distance_q(point, cell.barycenter)
         results[idx_d] = dist * dist
@@ -833,81 +822,117 @@ cdef double dot_q(DTYPE_t* u, DTYPE_t* v) nogil:
 cdef double distance_grad_q(DTYPE_t* u, DTYPE_t* v, int ax) nogil:
     return distance_grad(u[0], u[1], v[0], v[1], ax)
 
-cdef double distance(double u1, double u2, double v1, double v2) nogil:
+cpdef double distance(double u0, double u1, double v0, double v1) nogil:
+    if fabs(u0 - v0) <= EPSILON and fabs(u1 - v1) <= EPSILON:
+        return 0.
+
     cdef:
-        double uv2 = ((u1 - v1) * (u1 - v1)) + ((u2 - v2) * (u2 - v2))
-        double u_sq = u1 * u1 + u2 * u2
-        double v_sq = v1 * v1 + v2 * v2
-        double alpha = 1. - max(u_sq, MACHINE_EPSILON)
-        double beta = 1. - max(v_sq, MACHINE_EPSILON)
+        double uv2 = ((u0 - v0) * (u0 - v0)) + ((u1 - v1) * (u1 - v1))
+        double u_sq = clamp(u0 * u0 + u1 * u1, 0, BOUNDARY)
+        double v_sq = clamp(v0 * v0 + v1 * v1, 0, BOUNDARY)
+        double alpha = 1. - u_sq
+        double beta = 1. - v_sq
         double result = acosh( 1. + 2. * uv2 / ( alpha * beta ) )
 
     return result
 
-cdef double distance_grad(double u1, double u2, double v1, double v2, int ax) nogil:
-    if fabsf(u1 - v1) < EPSILON and fabsf(u2 - v2) < EPSILON:
-        return 0
+cdef double distance_grad(double u0, double u1, double v0, double v1, int ax) nogil:
+    if fabs(u0 - v0) <= EPSILON and fabs(u1 - v1) <= EPSILON:
+        return 0.
 
     cdef:
-        double a = u1 - v1
-        double b = u2 - v2
+        double a = u0 - v0
+        double b = u1 - v1
         double uv2 = a * a + b * b
 
-        double u_sq = u1 * u1 + u2 * u2
-        double v_sq = v1 * v1 + v2 * v2
-        double alpha = 1 - max(u_sq, MACHINE_EPSILON)
-        double beta = 1 - max(v_sq, MACHINE_EPSILON)
+        double u_sq = clamp(u0 * u0 + u1 * u1, 0, BOUNDARY)
+        double v_sq = clamp(v0 * v0 + v1 * v1, 0, BOUNDARY)
+        double alpha = 1 - u_sq
+        double beta = 1 - v_sq
 
         double gamma = 1 + (2 / (alpha * beta)) * uv2
         double shared_scalar = 4 / max(beta * sqrt((gamma * gamma) - 1), MACHINE_EPSILON)
 
-        double u_scalar = (v_sq - 2 * (u1 * v1 + u2 * v2) + 1) / (alpha * alpha)
+        double u_scalar = (v_sq - 2 * (u0 * v0 + u1 * v1) + 1) / (alpha * alpha)
         double v_scalar = 1. / alpha
 
     if ax == 0:
-        return shared_scalar * (u_scalar * u1 - v_scalar * v1)
+        return shared_scalar * (u_scalar * u0 - v_scalar * v0)
     else:
-        return shared_scalar * (u_scalar * u2 - v_scalar * v2)
+        return shared_scalar * (u_scalar * u1 - v_scalar * v1)
 
-cdef void exp_map(double[:, :] y, double[:, :] grad, double[:, :] out, int num_threads) nogil:
+cpdef void exp_map(double[:, :] y, double[:, :] grad, double[:, :] out, int num_threads) nogil:
     cdef double z_norm_sq, metric, v_norm, x, x_0, x_1, x_norm_sq, x_scalar, z_scalar, r_term, \
-        numerator_0, numerator_1, denominator
+        numerator_0, numerator_1, denominator, grad_sq
+
+    cdef double* temp = <double*> malloc(sizeof(double) * 2)
     # with nogil, parallel(num_threads=num_threads):
     #     for i in prange(y.shape[0], schedule='static'):
 
     for i in range(y.shape[0]):
-        z_norm_sq = max(y[i, 0] ** 2 + y[i, 1] ** 2, MACHINE_EPSILON)
-        # z_norm_sq = np.linalg.norm(z) ** 2
+        z_norm_sq = clamp(y[i, 0] ** 2 + y[i, 1] ** 2, 0, BOUNDARY)
 
         metric = 2 / (1 - z_norm_sq)
-        v_norm = max(sqrt(grad[i, 0] ** 2 + grad[i, 1] ** 2), MACHINE_EPSILON)
-        # v_norm = np.linalg.norm(v)
+        v_norm = sqrt(grad[i, 0] ** 2 + grad[i, 1] ** 2)
 
-        x = tanh((metric * v_norm) / 2)
-        x_0 = (grad[i, 0] / v_norm) * x
-        x_1 = (grad[i, 1] / v_norm) * x
-        x_norm_sq = x_0 ** 2 + x_1 ** 2
+        x = tanh((metric * v_norm) / 2.)
 
-        r_term = 1 + 2 * (y[i, 0] * x_0 + y[i, 1] * x_1)
+        for j in range(2):
+            temp[j] = (grad[i, j] / v_norm) * x
 
-        z_scalar = (r_term + x_norm_sq)
-        x_scalar = (1 - z_norm_sq)
+        temp = mobius_addition(&y[i, 0], temp)
 
-        numerator_0 = z_scalar * y[i, 0] + x_scalar * x_0
-        numerator_1 = z_scalar * y[i, 1] + x_scalar * x_1
-        denominator = r_term + z_norm_sq * x_norm_sq
+        for j in range(2):
+            out[i, j] = temp[j]
 
-        out[i, 0] = numerator_0 / denominator
-        out[i, 1] = numerator_1 / denominator
+    free(temp)
 
-        if sqrt(out[i, 0] ** 2 + out[i, 1] ** 2) >= 1:
-            out[i, 0] = y[i, 0]
-            out[i, 1] = y[i, 1]
+cdef double* mobius_addition(double* x, double* y) nogil:
+    cdef double y_norm_sq, x_norm_sq, x_scalar, y_scalar, r_term, denominator
+    cdef double* res = <double*> malloc(sizeof(double) * 2)
 
-def exp_map_py(double[:, :] y, double[:, :] grad, double[:, :] out, int num_threads):
-    exp_map(y, grad, out, num_threads)
+    x_norm_sq = clamp(x[0] ** 2 + x[1] ** 2, 0, BOUNDARY)
+    y_norm_sq = y[0] ** 2 + y[1] ** 2
 
-cdef void poincare_dists(double[:, :] y, double[:, :] out) nogil:
+    r_term = 1 + 2 * (x[0] * y[0] + x[1] * y[1])
+
+    x_scalar = (r_term + y_norm_sq)
+    y_scalar = (1 - x_norm_sq)
+
+    denominator = r_term + x_norm_sq * y_norm_sq
+
+    for i in range(2):
+        res[i] = (x_scalar * x[i] + y_scalar * y[i]) / denominator
+
+    return res
+
+cpdef void log_map(double[:, :] y, double[:, :] grad, double[:, :] out, int num_threads) nogil:
+    cdef double z_norm_sq, metric, v_norm, x, x_0, x_1, x_norm_sq, x_scalar, z_scalar, r_term, \
+        numerator_0, numerator_1, denominator, grad_sq
+
+    cdef double* temp = <double*> malloc(sizeof(double) * 2)
+    # with nogil, parallel(num_threads=num_threads):
+    #     for i in prange(y.shape[0], schedule='static'):
+
+    for i in range(y.shape[0]):
+        z_norm_sq = clamp(y[i, 0] ** 2 + y[i, 1] ** 2, 0, BOUNDARY)
+
+        metric = 2 / (1 - z_norm_sq)
+
+        for j in range(2):
+            temp[j] = -y[i, j]
+
+        temp = mobius_addition(temp, &grad[i, 0])
+
+        mob_add_norm_sq = temp[0] ** 2 + temp[1] ** 2
+        x = atanh(mob_add_norm_sq)
+
+        for j in range(2):
+            out[i, j] = (2 / metric) * x * (temp[j] / mob_add_norm_sq)
+
+    free(temp)
+
+cpdef void poincare_dists(double[:, :] y, double[:, :] out) nogil:
     cdef:
         long i, j
 
@@ -917,10 +942,6 @@ cdef void poincare_dists(double[:, :] y, double[:, :] out) nogil:
                 if i == j:
                     continue
                 out[i, j] = distance(y[i, 0], y[i, 1], y[j, 0], y[j, 1])
-
-
-def poincare_dists_py(double[:, :] y, double[:, :] out):
-    poincare_dists(y, out)
 
 def distance_grad_py(double[:] u, double[:] v, int ax):
     return distance_grad(u[0], u[1], v[0], v[1], ax)
@@ -1028,6 +1049,7 @@ cdef double exact_compute_gradient_negative(double[:, :] pos_reference,
 
                 qij = 1. / (1. + dij_sq)
                 mult = qij * qij * dij
+                # mult = qij * qij
 
                 sum_Q += qij
                 for ax in range(n_dimensions):
@@ -1073,7 +1095,6 @@ cdef double compute_gradient(float[:] timings,
     #                                stop, num_threads)
     sQ = compute_gradient_negative(pos_reference, neg_f, qt, dof, theta, start,
                                    stop, num_threads)
-
     if TAKE_TIMING:
         t2 = clock()
         timings[2] = ((float) (t2 - t1)) / CLOCKS_PER_SEC
@@ -1137,6 +1158,7 @@ cdef double compute_gradient_positive(double[:] val_P,
 
                 qij = 1. / (1. + dij_sq)
                 mult = pij * qij * dij
+                # mult = pij * qij
 
                 # only compute the error when needed
                 if compute_error:
@@ -1209,7 +1231,8 @@ cdef double compute_gradient_negative(double[:, :] pos_reference,
                 #     printf("[QuadTree] Size: %g, %g\n", dist2s, dist2s * size / dist2s)
 
                 sum_Q += size * qijZ   # size of the node * q
-                mult = size * qijZ * qijZ * sqrtf(dist2s)
+                mult = size * qijZ * qijZ * sqrt(dist2s)
+                # mult = size * qijZ * qijZ
 
                 for ax in range(n_dimensions):
                     neg_force[ax] += mult * summary[j * offset + ax]

@@ -224,12 +224,12 @@ def gradient_descent(
                 # y = Model.exp_map(y, -learning_rate * grad * gradient_mask, n_samples)
 
                 res = np.empty((n_samples, 2), dtype=ctypes.c_double)
-                tsne_barnes_hut_hyperbolic.exp_map_py(y.reshape(n_samples, 2).astype(ctypes.c_double),
-                                                      (-learning_rate * grad * gradient_mask)
-                                                      .reshape(n_samples, 2)
-                                                      .astype(ctypes.c_double),
-                                                      res,
-                                                      cf.params["params"]["num_threads"])
+                tsne_barnes_hut_hyperbolic.exp_map(y.reshape(n_samples, 2).astype(ctypes.c_double),
+                                                   (-learning_rate * grad * gradient_mask)
+                                                   .reshape(n_samples, 2)
+                                                   .astype(ctypes.c_double),
+                                                   res,
+                                                   cf.params["params"]["num_threads"])
                 y = res.ravel()
             else:
                 inc = update * grad < 0.0
@@ -241,17 +241,16 @@ def gradient_descent(
                 update = momentum * update - learning_rate * grad
                 # y = Model.exp_map(y, update * gradient_mask, n_samples)
                 res = np.empty((n_samples, 2), dtype=ctypes.c_double)
-                tsne_barnes_hut_hyperbolic.exp_map_py(y.reshape(n_samples, 2).astype(ctypes.c_double),
-                                                      (update * gradient_mask)
-                                                      .reshape(n_samples, 2)
-                                                      .astype(ctypes.c_double),
-                                                      res,
-                                                      cf.params["params"]["num_threads"])
+                tsne_barnes_hut_hyperbolic.exp_map(y.reshape(n_samples, 2).astype(ctypes.c_double),
+                                                   (update * gradient_mask)
+                                                   .reshape(n_samples, 2)
+                                                   .astype(ctypes.c_double),
+                                                   res,
+                                                   cf.params["params"]["num_threads"])
                 y = res.ravel()
 
             y = Model.constrain(y, n_samples)
-            # if Model is LorentzModel:
-            #     y = Model.init_proj(y.reshape(n_samples, 3)[:, 1:], n_samples).ravel()
+
         elif vanilla:
             y = y - learning_rate * grad * gradient_mask
         else:
