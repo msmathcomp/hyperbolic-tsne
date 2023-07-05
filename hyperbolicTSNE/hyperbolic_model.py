@@ -119,7 +119,7 @@ class PoincareDiskModel(BaseHyperbolicModel):
         for i, a in enumerate(y):
             a_norm = linalg.norm(a)
             if a_norm >= 1:
-                y[i] = (y[i] / a_norm) - 1e6
+                y[i] = (y[i] / a_norm) - 1e-6
         return y.ravel()
 
 
