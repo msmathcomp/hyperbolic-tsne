@@ -31,6 +31,7 @@ cdef float FLOAT32_TINY = np.finfo(np.float32).tiny
 cdef float FLOAT64_EPS = np.finfo(np.float64).eps
 
 cdef double EPSILON = 1e-5
+cdef double MAX_TANH = 15.0
 cdef double BOUNDARY = 1 - EPSILON
 cdef int RANGE = 0
 cdef int ANGLE = 1
@@ -847,13 +848,13 @@ cdef double distance_grad(double u0, double u1, double v0, double v1, int ax) no
 
         double u_sq = clamp(u0 * u0 + u1 * u1, 0, BOUNDARY)
         double v_sq = clamp(v0 * v0 + v1 * v1, 0, BOUNDARY)
-        double alpha = 1 - u_sq
-        double beta = 1 - v_sq
+        double alpha = 1. - u_sq
+        double beta = 1. - v_sq
 
-        double gamma = 1 + (2 / (alpha * beta)) * uv2
-        double shared_scalar = 4 / max(beta * sqrt((gamma * gamma) - 1), MACHINE_EPSILON)
+        double gamma = 1. + (2. / (alpha * beta)) * uv2
+        double shared_scalar = 4. / fmax(beta * sqrt((gamma * gamma) - 1.), MACHINE_EPSILON)
 
-        double u_scalar = (v_sq - 2 * (u0 * v0 + u1 * v1) + 1) / (alpha * alpha)
+        double u_scalar = (v_sq - 2. * (u0 * v0 + u1 * v1) + 1.) / (alpha * alpha)
         double v_scalar = 1. / alpha
 
     if ax == 0:
@@ -861,31 +862,33 @@ cdef double distance_grad(double u0, double u1, double v0, double v1, int ax) no
     else:
         return shared_scalar * (u_scalar * u1 - v_scalar * v1)
 
-cpdef void exp_map(double[:, :] y, double[:, :] grad, double[:, :] out, int num_threads) nogil:
-    cdef double z_norm_sq, metric, v_norm, x, x_0, x_1, x_norm_sq, x_scalar, z_scalar, r_term, \
-        numerator_0, numerator_1, denominator, grad_sq
+cdef double* exp_map_single(double* x, double* v) nogil:
+    cdef double x_norm_sq, metric, v_norm, v_scalar
+    cdef double* res = <double*> malloc(sizeof(double) * 2)
 
-    cdef double* temp = <double*> malloc(sizeof(double) * 2)
-    # with nogil, parallel(num_threads=num_threads):
-    #     for i in prange(y.shape[0], schedule='static'):
+    x_norm_sq = clamp(x[0] ** 2 + x[1] ** 2, 0, BOUNDARY)
 
-    for i in range(y.shape[0]):
-        z_norm_sq = clamp(y[i, 0] ** 2 + y[i, 1] ** 2, 0, BOUNDARY)
+    metric = 2. / (1. - x_norm_sq)
+    v_norm = sqrt(v[0] ** 2 + v[1] ** 2)
 
-        metric = 2 / (1 - z_norm_sq)
-        v_norm = sqrt(grad[i, 0] ** 2 + grad[i, 1] ** 2)
+    v_scalar = tanh(clamp((metric * v_norm) / 2., -MAX_TANH, MAX_TANH))
 
-        x = tanh((metric * v_norm) / 2.)
+    for j in range(2):
+        res[j] = (v[j] / v_norm) * v_scalar
+
+    res = mobius_addition(x, res)
+
+    return res
+
+cpdef void exp_map(double[:, :] x, double[:, :] v, double[:, :] out, int num_threads) nogil:
+    cdef double* exp_map_res = <double*> malloc(sizeof(double) * 2)
+    for i in range(x.shape[0]):
+        exp_map_res = exp_map_single(&x[i, 0], &v[i, 0])
 
         for j in range(2):
-            temp[j] = (grad[i, j] / v_norm) * x
+            out[i, j] = exp_map_res[j]
 
-        temp = mobius_addition(&y[i, 0], temp)
-
-        for j in range(2):
-            out[i, j] = temp[j]
-
-    free(temp)
+    free(exp_map_res)
 
 cdef double* mobius_addition(double* x, double* y) nogil:
     cdef double y_norm_sq, x_norm_sq, x_scalar, y_scalar, r_term, denominator
@@ -894,10 +897,10 @@ cdef double* mobius_addition(double* x, double* y) nogil:
     x_norm_sq = clamp(x[0] ** 2 + x[1] ** 2, 0, BOUNDARY)
     y_norm_sq = y[0] ** 2 + y[1] ** 2
 
-    r_term = 1 + 2 * (x[0] * y[0] + x[1] * y[1])
+    r_term = 1. + 2. * (x[0] * y[0] + x[1] * y[1])
 
     x_scalar = (r_term + y_norm_sq)
-    y_scalar = (1 - x_norm_sq)
+    y_scalar = (1. - x_norm_sq)
 
     denominator = r_term + x_norm_sq * y_norm_sq
 
@@ -905,32 +908,45 @@ cdef double* mobius_addition(double* x, double* y) nogil:
         res[i] = (x_scalar * x[i] + y_scalar * y[i]) / denominator
 
     return res
+cdef double* log_map_single(double* x, double* y) nogil:
+    cdef double x_norm_sq, metric, y_scalar
+    cdef double* res = <double*> malloc(sizeof(double) * 2)
 
-cpdef void log_map(double[:, :] y, double[:, :] grad, double[:, :] out, int num_threads) nogil:
-    cdef double z_norm_sq, metric, v_norm, x, x_0, x_1, x_norm_sq, x_scalar, z_scalar, r_term, \
-        numerator_0, numerator_1, denominator, grad_sq
+    x_norm_sq = clamp(x[0] ** 2 + x[1] ** 2, 0, BOUNDARY)
 
-    cdef double* temp = <double*> malloc(sizeof(double) * 2)
-    # with nogil, parallel(num_threads=num_threads):
-    #     for i in prange(y.shape[0], schedule='static'):
+    metric = 2. / (1. - x_norm_sq)
 
+    for j in range(2):
+        res[j] = -x[j]
+
+    res = mobius_addition(res, y)
+
+    mob_add_norm = sqrt(res[0] ** 2 + res[1] ** 2)
+    y_scalar = atanh(fmin(mob_add_norm, 1. - EPSILON))
+
+    for j in range(2):
+        res[j] = (2. / metric) * y_scalar * (res[j] / mob_add_norm)
+
+    return res
+cpdef void log_map(double[:, :] x, double[:, :] y, double[:, :] out, int num_threads) nogil:
+    cdef double* log_map_res = <double*> malloc(sizeof(double) * 2)
+    for i in range(x.shape[0]):
+        log_map_res = log_map_single(&x[i, 0], &y[i, 0])
+
+        for j in range(2):
+            out[i, j] = log_map_res[j]
+
+    free(log_map_res)
+
+cpdef void constrain(double[:, :] y, double[:, :] out, int num_threads) nogil:
     for i in range(y.shape[0]):
-        z_norm_sq = clamp(y[i, 0] ** 2 + y[i, 1] ** 2, 0, BOUNDARY)
-
-        metric = 2 / (1 - z_norm_sq)
+        point_norm = sqrt(y[i, 0] ** 2 + y[i, 1] ** 2)
 
         for j in range(2):
-            temp[j] = -y[i, j]
-
-        temp = mobius_addition(temp, &grad[i, 0])
-
-        mob_add_norm_sq = temp[0] ** 2 + temp[1] ** 2
-        x = atanh(mob_add_norm_sq)
-
-        for j in range(2):
-            out[i, j] = (2 / metric) * x * (temp[j] / mob_add_norm_sq)
-
-    free(temp)
+            if point_norm >= BOUNDARY:
+                out[i, j] = (y[i, j] / point_norm) - EPSILON
+            else:
+                out[i, j] = y[i, j]
 
 cpdef void poincare_dists(double[:, :] y, double[:, :] out) nogil:
     cdef:

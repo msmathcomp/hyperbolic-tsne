@@ -218,8 +218,6 @@ def gradient_descent(
 
         # Perform the actual gradient descent step
         if isinstance(cf, HyperbolicKL):
-            Model = cf.params["params"]["hyperbolic_model"]
-
             if vanilla:
                 # y = Model.exp_map(y, -learning_rate * grad * gradient_mask, n_samples)
 
@@ -232,24 +230,36 @@ def gradient_descent(
                                                    cf.params["params"]["num_threads"])
                 y = res.ravel()
             else:
-                inc = update * grad < 0.0
-                dec = np.invert(inc)
-                gains[inc] += 0.2
-                gains[dec] *= 0.8
-                np.clip(gains, min_gain, np.inf, out=gains)
-                grad *= gains
+                # inc = update * grad < 0.0
+                # dec = np.invert(inc)
+                # gains[inc] += 0.2
+                # gains[dec] *= 0.8
+                # np.clip(gains, min_gain, np.inf, out=gains)
+                # grad *= gains
                 update = momentum * update - learning_rate * grad
                 # y = Model.exp_map(y, update * gradient_mask, n_samples)
-                res = np.empty((n_samples, 2), dtype=ctypes.c_double)
+                res_exp = np.empty((n_samples, 2), dtype=ctypes.c_double)
                 tsne_barnes_hut_hyperbolic.exp_map(y.reshape(n_samples, 2).astype(ctypes.c_double),
                                                    (update * gradient_mask)
                                                    .reshape(n_samples, 2)
                                                    .astype(ctypes.c_double),
-                                                   res,
+                                                   res_exp,
                                                    cf.params["params"]["num_threads"])
-                y = res.ravel()
 
-            y = Model.constrain(y, n_samples)
+                res_log = np.empty((n_samples, 2), dtype=ctypes.c_double)
+                tsne_barnes_hut_hyperbolic.log_map(res_exp,
+                                                   y.reshape(n_samples, 2).astype(ctypes.c_double),
+                                                   res_log,
+                                                   cf.params["params"]["num_threads"])
+                y = res_exp.ravel()
+
+                update = res_log.ravel() * -1
+
+            res_constrain = np.empty((n_samples, 2), dtype=ctypes.c_double)
+            tsne_barnes_hut_hyperbolic.constrain(y.reshape(n_samples, 2).astype(ctypes.c_double),
+                                                 res_constrain,
+                                                 cf.params["params"]["num_threads"])
+            y = res_constrain.ravel()
 
         elif vanilla:
             y = y - learning_rate * grad * gradient_mask
@@ -272,9 +282,9 @@ def gradient_descent(
             toc_l = time()
             duration_l = toc_l - tic_l
 
-            if isinstance(cf, HyperbolicKL):
-                logging_dict[logging_key]["times"].append(duration_l)
-                logging_dict[logging_key]["hyperbolic"].append(cf.results[-1])
+            # if isinstance(cf, HyperbolicKL):
+            #     logging_dict[logging_key]["times"].append(duration_l)
+            #     logging_dict[logging_key]["hyperbolic"].append(cf.results[-1])
 
             # TODO: For grid run only run every 50 iterations if hyperbolic
             # if not isinstance(cf, HyperbolicKL) or i % 50 == 0 or i == total_its - 1:
