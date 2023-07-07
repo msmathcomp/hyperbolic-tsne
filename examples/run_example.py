@@ -3,7 +3,7 @@ import traceback
 
 from hyperbolicTSNE.util import find_last_embedding
 from hyperbolicTSNE.visualization import plot_poincare, animate
-from hyperbolicTSNE import load_data, Datasets, SequentialOptimizer, initialization, HDEO, PoincareDiskModel
+from hyperbolicTSNE import load_data, Datasets, SequentialOptimizer, initialization, HDEO
 
 data_home = "../datasets"
 
@@ -11,8 +11,7 @@ seed = 42
 dataX, dataY, D, V = load_data(Datasets.MYELOID, data_home=data_home, random_state=seed, to_return="X_labels_D_V",
                                hd_params={"perplexity": 30})
 
-opt_params = SequentialOptimizer.sequence_poincare(PoincareDiskModel,
-                                                   gradientDescent_its=750,
+opt_params = SequentialOptimizer.sequence_poincare(gradientDescent_its=140,
                                                    learning_rate=1,
                                                    vanilla=True,
                                                    exact=False)

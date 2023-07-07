@@ -322,9 +322,7 @@ class HyperbolicKL(BaseCostFunction):
         n_samples = V.shape[0]
         if self.params["method"] == "exact":
             Y = Y.reshape(n_samples, self.n_components)
-            Model = self.params["params"]["hyperbolic_model"]
-            model = Model(Y)
-            return self._obj_exact(model, Y, V, n_samples, forces, per_point)
+            return self._obj_exact(Y, V, n_samples, forces, per_point)
         elif self.params["method"] == "barnes-hut":
             if forces != "total" or per_point == True:
                 raise Exception(
@@ -336,9 +334,7 @@ class HyperbolicKL(BaseCostFunction):
         n_samples = V.shape[0]
         if self.params["method"] == "exact":
             Y = Y.reshape(n_samples, self.n_components)
-            Model = self.params["params"]["params"]["hyperbolic_model"]
-            model = Model(Y)
-            return self._grad_exact(model, Y, V, n_samples, forces, per_point)
+            return self._grad_exact(Y, V, n_samples, forces, per_point)
         elif self.params["method"] == "barnes-hut":
             if forces != "total" or per_point == True:
                 raise Exception(
@@ -351,10 +347,7 @@ class HyperbolicKL(BaseCostFunction):
         if self.params["method"] == "exact":
             # print("Warning: the exact version of KL divergence computes obj and grad separately.")
             Y = Y.reshape(n_samples, self.n_components)
-            Model = self.params["params"]["hyperbolic_model"]
-            model = Model(Y)
-            # obj = self._obj_exact(model, Y, V, n_samples, forces, per_point)
-            obj, grad = self._grad_exact(model, Y, V, n_samples, forces, per_point)
+            obj, grad = self._grad_exact(Y, V, n_samples, forces, per_point)
             return obj, grad
         elif self.params["method"] == "barnes-hut":
             if forces != "total" or per_point == True:
@@ -367,66 +360,38 @@ class HyperbolicKL(BaseCostFunction):
     # Main private functions #
     ##########################
 
-    def _obj_exact(self, model, Y, V, n_samples, forces="total", per_point=False):
-        dist = 1 / (1 + model.dist() ** 2)
-        W = np.maximum(dist / (2.0 * np.sum(dist)), MACHINE_EPSILON)
+    def _obj_exact(self, Y, V, n_samples, forces="total", per_point=False):
+        return self._grad_bh(Y, V, n_samples)
 
-        return 2.0 * np.dot(V, np.log(V / W))
+    def _grad_exact(self, Y, V, n_samples, forces="total", per_point=False, save_timings=True):
 
-    def _grad_exact(self, model, Y, V, n_samples, forces="total", per_point=False):
-        V = squareform(np.array(V.todense()))
-        V = np.maximum(V, MACHINE_EPSILON)
+        Y = Y.astype(ctypes.c_double, copy=False)
+        Y = Y.reshape(n_samples, self.n_components)
 
-        # W is a heavy-tailed distribution: Student's t-distribution
-        d = model.dist()
-        dist = 1 / (1 + d ** 2)
-        W = np.maximum(dist / (2.0 * np.sum(dist)), MACHINE_EPSILON)
+        val_V = V.data
+        neighbors = V.indices.astype(np.int64, copy=False)
+        indptr = V.indptr.astype(np.int64, copy=False)
 
-        # Gradient: dC/dY
-        # pdist always returns double precision distances. Thus we need to take
-        grad = np.ndarray((n_samples, self.n_components), dtype=Y.dtype)
-        VWd = squareform((V - W) * dist * d)
-
-        dist_grad = model.dist_grad()
-
-        for i in range(self.params["params"]["skip_num_points"], n_samples):
-            grad[i] = np.dot(np.ravel(VWd[i], order='K'), dist_grad[i])
+        grad = np.zeros(Y.shape, dtype=ctypes.c_double)
+        timings = np.zeros(4, dtype=ctypes.c_float)
+        error = tsne_barnes_hut_hyperbolic.gradient(
+            timings,
+            val_V, Y, neighbors, indptr, grad,
+            0.5,
+            self.n_components,
+            self.params["params"]["verbose"],
+            dof=self.params["params"]["degrees_of_freedom"],
+            compute_error=True,
+            num_threads=self.params["params"]["num_threads"],
+            exact=True
+        )
 
         grad *= 2
-        # grad *= model.metric_tensor()
-        # grad = model.proj(Y, grad)
 
-        return self._obj_exact(model, Y, V, n_samples, forces, per_point), grad.ravel()
+        if save_timings:
+            self.results.append(timings)
 
-    # def _grad_exact(self, model, Y, V, n_samples, forces="total", per_point=False, save_timings=True):
-    #
-    #     Y = Y.astype(ctypes.c_double, copy=False)
-    #     Y = Y.reshape(n_samples, self.n_components)
-    #
-    #     val_V = V.data
-    #     neighbors = V.indices.astype(np.int64, copy=False)
-    #     indptr = V.indptr.astype(np.int64, copy=False)
-    #
-    #     grad = np.zeros(Y.shape, dtype=ctypes.c_double)
-    #     timings = np.zeros(4, dtype=ctypes.c_float)
-    #     error = tsne_barnes_hut_hyperbolic.gradient(
-    #         timings,
-    #         val_V, Y, neighbors, indptr, grad,
-    #         0.5,
-    #         self.n_components,
-    #         self.params["params"]["verbose"],
-    #         dof=self.params["params"]["degrees_of_freedom"],
-    #         compute_error=True,
-    #         num_threads=self.params["params"]["num_threads"],
-    #         exact=True
-    #     )
-    #
-    #     grad *= 2
-    #
-    #     if save_timings:
-    #         self.results.append(timings)
-    #
-    #     return error, grad.ravel()
+        return error, grad.ravel()
 
     def _obj_bh(self, Y, V, n_samples):
         return self._grad_bh(Y, V, n_samples)

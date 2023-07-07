@@ -386,13 +386,12 @@ class SequentialOptimizer(BaseOptimizer):
         return template
 
     @classmethod
-    def sequence_poincare(cls, model, exaggeration_its=250, exaggeration=12, gradientDescent_its=750,
+    def sequence_poincare(cls, exaggeration_its=250, exaggeration=12, gradientDescent_its=750,
                           n_iter_check=np.inf, threshold_cf=0., threshold_its=-1, threshold_check_size=-1,
                           learning_rate=0.1, momentum=0.8, vanilla=False, exact=True, calc_both=False, angle=0.5,
                           area_split=False):
         # Start with an empty sequence
         cf_config_params = HyperbolicKL.exact_tsne() if exact else HyperbolicKL.bh_tsne()
-        cf_config_params["params"]["hyperbolic_model"] = model
         cf_config_params["params"]["calc_both"] = calc_both
         cf_config_params["params"]["area_split"] = area_split
 
