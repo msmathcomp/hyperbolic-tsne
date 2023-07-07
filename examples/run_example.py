@@ -13,7 +13,7 @@ dataX, dataY, D, V = load_data(Datasets.MYELOID, data_home=data_home, random_sta
 
 opt_params = SequentialOptimizer.sequence_poincare(gradientDescent_its=140,
                                                    learning_rate=1,
-                                                   vanilla=True,
+                                                   vanilla=False,
                                                    exact=False)
 
 X_embedded = initialization(n_samples=dataX.shape[0],
@@ -29,9 +29,10 @@ logging_dict = {
 opt_params["logging_dict"] = logging_dict
 
 # Delete old log path
-if os.path.exists(opt_params["logging_dict"]["log_path"]):
+log_path = opt_params["logging_dict"]["log_path"]
+if os.path.exists(log_path):
     import shutil
-    shutil.rmtree(opt_params["logging_dict"]["log_path"])
+    shutil.rmtree(log_path)
 # End: logging
 
 hdeo_hyper = HDEO(init=X_embedded, n_components=2, metric="precomputed", verbose=True, opt_method=SequentialOptimizer, opt_params=opt_params)
@@ -39,7 +40,7 @@ hdeo_hyper = HDEO(init=X_embedded, n_components=2, metric="precomputed", verbose
 try:
     res_hdeo_hyper = hdeo_hyper.fit_transform((D, V))
 except ValueError:
-    res_hdeo_hyper = find_last_embedding(opt_params)
+    res_hdeo_hyper = find_last_embedding(log_path)
     traceback.print_exc()
 
 fig = plot_poincare(res_hdeo_hyper, dataY)

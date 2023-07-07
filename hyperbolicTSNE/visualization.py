@@ -17,7 +17,7 @@ def plot_poincare(points, labels=None):
 
 
 def animate(log_dict, labels, file_name, fast=False, is_hyperbolic=True, plot_ee=False, first_frame=None):
-    scatter_data = [] if first_frame is None else [(-1, first_frame)]
+    scatter_data = [] if first_frame is None else [("-1", first_frame)]
     for subdir, dirs, files in os.walk(log_dict["log_path"]):
         for fi, file in enumerate(sorted(files, key=lambda x: int(x.split(", ")[0]))):
             root, ext = os.path.splitext(file)
