@@ -16,6 +16,16 @@ def plot_poincare(points, labels=None):
     return fig
 
 
+def plot_poincare_zoomed(points, labels=None):
+    fig, ax = plt.subplots()
+    ax.scatter(points[:, 0], points[:, 1],
+               c=labels,
+               marker=".")
+    ax.axis("square")
+    ax.add_patch(plt.Circle((0, 0), radius=1, edgecolor="b", facecolor="None"))
+    return fig
+
+
 def animate(log_dict, labels, file_name, fast=False, is_hyperbolic=True, plot_ee=False, first_frame=None):
     scatter_data = [] if first_frame is None else [("-1", first_frame)]
     for subdir, dirs, files in os.walk(log_dict["log_path"]):
