@@ -10,7 +10,8 @@ def plot_poincare(points, labels=None):
     fig, ax = plt.subplots()
     ax.scatter(points[:, 0], points[:, 1],
                c=labels,
-               marker=".")
+               marker=".",
+               cmap="tab10")
     ax.add_patch(plt.Circle((0, 0), radius=1, edgecolor="b", facecolor="None"))
     ax.axis("square")
     return fig
@@ -20,7 +21,8 @@ def plot_poincare_zoomed(points, labels=None):
     fig, ax = plt.subplots()
     ax.scatter(points[:, 0], points[:, 1],
                c=labels,
-               marker=".")
+               marker=".",
+               cmap="tab10")
     ax.axis("square")
     ax.add_patch(plt.Circle((0, 0), radius=1, edgecolor="b", facecolor="None"))
     return fig
@@ -41,7 +43,7 @@ def animate(log_dict, labels, file_name, fast=False, is_hyperbolic=True, plot_ee
 
     _, data = scatter_data[0 if is_hyperbolic else -1]
 
-    scatter = ax.scatter(data[:, 0], data[:, 1], c=labels, marker=".", linewidth=0.5, s=20)
+    scatter = ax.scatter(data[:, 0], data[:, 1], c=labels, marker=".", linewidth=0.5, s=20, cmap="tab10")
 
     if is_hyperbolic:
         uc = plt.Circle((0, 0), radius=1, edgecolor="b", facecolor="None")
