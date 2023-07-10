@@ -415,6 +415,8 @@ class SequentialOptimizer(BaseOptimizer):
         #     threshold_cf=threshold_cf, threshold_its=threshold_its, threshold_check_size=threshold_check_size,
         #     learning_rate=learning_rate / 10, momentum=momentum, vanilla=vanilla
         # )
+        #
+        # template["sequence"][-1]["params"]["vanilla"] = vanilla
 
         # Add the block for gradient descent
         template["sequence"] = SequentialOptimizer.add_block_gradient_descent_with_rescale_and_gradient_mask(
