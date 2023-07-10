@@ -193,7 +193,7 @@ def gradient_descent(
 
     tic = time()
     i = start_it-1
-    for i in tqdm(range(i+1, total_its), "Gradient Descent"):
+    for i in (pbar := tqdm(range(i+1, total_its), "Gradient Descent")):
         check_convergence = (i + 1) % n_iter_check == 0
         check_threshold = threshold_cf > 0. or threshold_its > 0
         # only compute the error when needed
@@ -207,9 +207,9 @@ def gradient_descent(
                 Y_r = y.reshape(n_samples, 2)
 
                 metric = (1 - np.linalg.norm(Y_r, axis=1) ** 2) ** 2 / 4
-                grad_r = (grad_r * metric[:, np.newaxis]).flatten()
+                grad = (grad_r * metric[:, np.newaxis]).flatten()
 
-                grad_norm = linalg.norm(grad_r)
+                grad_norm = linalg.norm(grad)
             else:
                 grad_norm = linalg.norm(grad)
         else:
@@ -272,6 +272,8 @@ def gradient_descent(
             grad *= gains
             update = momentum * update - learning_rate * grad
             y += update * gradient_mask
+
+        pbar.set_description(f"Gradient Descent error: {error:.5f} grad_norm: {grad_norm:.5e}")
 
         # If a rescale value has been specified, rescale the embedding now to have the bounding box fit the given value.
         if rescale is not None and i % n_iter_rescale == 0:
