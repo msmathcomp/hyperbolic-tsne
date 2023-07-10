@@ -203,11 +203,9 @@ def gradient_descent(
             error, grad = cf.obj_grad(y, **cf_params)
 
             if isinstance(cf, HyperbolicKL):
-                grad_r = grad.reshape(n_samples, 2)
-                Y_r = y.reshape(n_samples, 2)
-
-                metric = (1 - np.linalg.norm(Y_r, axis=1) ** 2) ** 2 / 4
-                grad = (grad_r * metric[:, np.newaxis]).flatten()
+                # New Fix
+                grad = ((1. - np.linalg.norm(y.reshape(n_samples, 2), axis=1) ** 2) ** 2)[:, np.newaxis] * grad.reshape(n_samples, 2) / 4
+                grad = grad.flatten()
 
                 grad_norm = linalg.norm(grad)
             else:
