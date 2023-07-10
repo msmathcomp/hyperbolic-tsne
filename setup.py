@@ -226,6 +226,7 @@ setup(
             "matplotlib",
             "seaborn",
         ],
+        "anndata": "anndata",
         "hnsw": "hnswlib~=0.4.0",
         "pynndescent": "pynndescent~=0.5.0",
     },
