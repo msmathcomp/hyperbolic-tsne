@@ -8,13 +8,17 @@ from hyperbolicTSNE import load_data, Datasets, SequentialOptimizer, initializat
 data_home = "../datasets"
 
 seed = 42
-dataset = Datasets.MYELOID
-dataX, dataY, D, V = load_data(dataset, data_home=data_home, random_state=seed, to_return="X_labels_D_V",
-                               hd_params={"perplexity": 30})
+dataset = Datasets.MNIST
+dataX, dataY, D, V, _ = load_data(dataset, data_home=data_home, random_state=seed, to_return="X_labels_D_V",
+                                    hd_params={"perplexity": 30}, sample=10000)
 
-opt_params = SequentialOptimizer.sequence_poincare(learning_rate=1,
-                                                   gradientDescent_its=2000,
-                                                   vanilla=False,
+# dataset = Datasets.MYELOID
+# dataX, dataY, D, V = load_data(dataset, data_home=data_home, random_state=seed, to_return="X_labels_D_V",
+#                                hd_params={"perplexity": 30})
+
+opt_params = SequentialOptimizer.sequence_poincare(learning_rate=110,
+                                                   gradientDescent_its=750,
+                                                   vanilla=True,
                                                    exact=False)
 
 X_embedded = initialization(n_samples=dataX.shape[0],
@@ -49,8 +53,8 @@ except ValueError:
 fig = plot_poincare(res_hdeo_hyper, dataY)
 fig.show()
 
-fig = plot_poincare_zoomed(res_hdeo_hyper, dataY)
-fig.show()
+# fig = plot_poincare_zoomed(res_hdeo_hyper, dataY)
+# fig.show()
 
-animate(logging_dict, dataY, f"../results/{dataset.name}_fast.mp4", fast=True)
+animate(logging_dict, dataY, f"../results/{dataset.name}_fast.mp4", fast=True, plot_ee=True)
 animate(logging_dict, dataY, f"../results/{dataset.name}.mp4")
