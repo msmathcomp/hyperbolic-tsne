@@ -321,38 +321,26 @@ class HyperbolicKL(BaseCostFunction):
     def obj(self, Y, *, V, forces="total", per_point=False):
         n_samples = V.shape[0]
         if self.params["method"] == "exact":
-            Y = Y.reshape(n_samples, self.n_components)
-            return self._obj_exact(Y, V, n_samples, forces, per_point)
+            obj, _ = self._obj_exact(Y, V, n_samples, forces, per_point)
+            return obj
         elif self.params["method"] == "barnes-hut":
-            if forces != "total" or per_point == True:
-                raise Exception(
-                    "If computing KLDivergence using Barnes-Hut, individualized features are not available.")
             obj, _ = self._obj_bh(Y, V, n_samples)
             return obj
 
     def grad(self, Y, *, V, forces="total", per_point=False):
         n_samples = V.shape[0]
         if self.params["method"] == "exact":
-            Y = Y.reshape(n_samples, self.n_components)
             return self._grad_exact(Y, V, n_samples, forces, per_point)
         elif self.params["method"] == "barnes-hut":
-            if forces != "total" or per_point == True:
-                raise Exception(
-                    "If computing KLDivergence using Barnes-Hut, individualized features are not available.")
             _, grad = self._grad_bh(Y, V, n_samples)
             return grad
 
     def obj_grad(self, Y, *, V, forces="total", per_point=False):
         n_samples = V.shape[0]
         if self.params["method"] == "exact":
-            # print("Warning: the exact version of KL divergence computes obj and grad separately.")
-            Y = Y.reshape(n_samples, self.n_components)
             obj, grad = self._grad_exact(Y, V, n_samples, forces, per_point)
             return obj, grad
         elif self.params["method"] == "barnes-hut":
-            if forces != "total" or per_point == True:
-                raise Exception(
-                    "If computing KLDivergence using Barnes-Hut, individualized features are not available.")
             obj, grad = self._obj_bh(Y, V, n_samples)
             return obj, grad
 
@@ -360,11 +348,11 @@ class HyperbolicKL(BaseCostFunction):
     # Main private functions #
     ##########################
 
-    def _obj_exact(self, Y, V, n_samples, forces="total", per_point=False):
-        return self._grad_bh(Y, V, n_samples)
+    def _obj_exact(self, Y, V, n_samples):
+        # TODO
+        pass
 
-    def _grad_exact(self, Y, V, n_samples, forces="total", per_point=False, save_timings=True):
-
+    def _grad_exact(self, Y, V, n_samples, save_timings=True):
         Y = Y.astype(ctypes.c_double, copy=False)
         Y = Y.reshape(n_samples, self.n_components)
 
@@ -386,21 +374,18 @@ class HyperbolicKL(BaseCostFunction):
             exact=True
         )
 
-        grad *= 2
+        grad = grad.ravel()
+        grad *= 4
 
         if save_timings:
             self.results.append(timings)
 
-        return error, grad.ravel()
+        return error, grad
 
     def _obj_bh(self, Y, V, n_samples):
         return self._grad_bh(Y, V, n_samples)
 
     def _grad_bh(self, Y, V, n_samples):
-
-        if self.params["params"]["calc_both"]:
-            grad_exact = self._grad_exact(None, Y, V, n_samples, save_timings=False)
-
         Y = Y.astype(ctypes.c_double, copy=False)
         Y = Y.reshape(n_samples, self.n_components)
 
@@ -424,21 +409,6 @@ class HyperbolicKL(BaseCostFunction):
         )
 
         grad = grad.ravel()
-        grad *= 2
-
-        if self.params["params"]["calc_both"]:
-            grad_r = grad.reshape(n_samples, 2)
-            grad_exact_r = grad_exact.reshape(n_samples, 2)
-
-            metric = (1 - np.linalg.norm(Y, axis=1) ** 2) ** 2 / 4
-            grad_r = (grad_r * metric[:, np.newaxis]).flatten()
-            grad_exact_r = (grad_exact_r * metric[:, np.newaxis]).flatten()
-
-            grad_diff = grad_r - grad_exact_r
-            self.results.append([np.linalg.norm(grad_diff) / np.linalg.norm(grad_exact_r),
-                                 np.linalg.norm(grad_diff) / np.linalg.norm(grad_r),
-                                 np.linalg.norm(grad_diff)])
-        else:
-            self.results.append(timings)
+        grad *= 4
 
         return error, grad
