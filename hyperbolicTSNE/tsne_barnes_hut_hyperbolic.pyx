@@ -1064,7 +1064,11 @@ cdef double exact_compute_gradient_negative(double[:, :] pos_reference,
                 dij_sq = dij * dij
 
                 qij = 1. / (1. + dij_sq)
+
+                # New Fix
                 mult = qij * qij * dij
+
+                # Old Solution
                 # mult = qij * qij
 
                 sum_Q += qij
@@ -1173,7 +1177,10 @@ cdef double compute_gradient_positive(double[:] val_P,
                 dij_sq = dij * dij
 
                 qij = 1. / (1. + dij_sq)
+                # New Fix
                 mult = pij * qij * dij
+
+                # Old solution
                 # mult = pij * qij
 
                 # only compute the error when needed
@@ -1247,7 +1254,11 @@ cdef double compute_gradient_negative(double[:, :] pos_reference,
                 #     printf("[QuadTree] Size: %g, %g\n", dist2s, dist2s * size / dist2s)
 
                 sum_Q += size * qijZ   # size of the node * q
+
+                # New Fix
                 mult = size * qijZ * qijZ * sqrt(dist2s)
+
+                # Old Solution
                 # mult = size * qijZ * qijZ
 
                 for ax in range(n_dimensions):
