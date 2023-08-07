@@ -14,8 +14,8 @@ from pathlib import Path
 from scipy import linalg
 from tqdm import tqdm
 
-from hyperbolicTSNE.cost_functions_ import HyperbolicKL
-from hyperbolicTSNE import tsne_barnes_hut_hyperbolic
+from .cost_functions_ import HyperbolicKL
+from . import tsne_barnes_hut_hyperbolic
 
 MACHINE_EPSILON = np.finfo(np.double).eps
 
@@ -60,7 +60,7 @@ def gradient_descent(
         y0, cf, cf_params, *, start_it=0, n_iter=100, n_iter_check=np.inf, n_iter_without_progress=300,
         threshold_cf=0., threshold_its=-1, threshold_check_size=-1.,
         momentum=0.8, learning_rate=200.0, min_gain=0.01, vanilla=False, min_grad_norm=1e-7, error_tol=1e-9, verbose=0,
-        rescale=None, n_iter_rescale=np.inf, gradient_mask=np.ones,
+        rescale=None, n_iter_rescale=np.inf, gradient_mask=np.ones, grad_scale_fix=False,
         logging_dict=None, logging_key=None,
 ):
     """Batch gradient descent with momentum and individual gains.
@@ -204,7 +204,10 @@ def gradient_descent(
 
             if isinstance(cf, HyperbolicKL):
                 # New Fix
-                grad = ((1. - np.linalg.norm(y.reshape(n_samples, 2), axis=1) ** 2) ** 2)[:, np.newaxis] * grad.reshape(n_samples, 2) / 4
+                if grad_scale_fix:
+                    grad = ((1. - np.linalg.norm(y.reshape(n_samples, 2), axis=1) ** 2) ** 2)[:, np.newaxis] * grad.reshape(n_samples, 2) / 4
+                else:
+                    pass
                 grad = grad.flatten()
 
                 grad_norm = linalg.norm(grad)

@@ -4,7 +4,9 @@ import numpy as np
 from sklearn.neighbors import NearestNeighbors
 from scipy.sparse import csr_matrix
 
-from hyperbolicTSNE import tsne_utils
+import hnswlib
+
+from . import tsne_utils
 
 MACHINE_EPSILON = np.finfo(np.double).eps
 

@@ -38,6 +38,7 @@ cdef int ANGLE = 1
 cdef double MACHINE_EPSILON = np.finfo(np.double).eps
 cdef int TAKE_TIMING = 1
 cdef int AREA_SPLIT = 1
+cdef int GRAD_FIX = 1
 
 cdef double clamp(double n, double lower, double upper) nogil:
     cdef double t = lower if n < lower else n
@@ -1065,11 +1066,12 @@ cdef double exact_compute_gradient_negative(double[:, :] pos_reference,
 
                 qij = 1. / (1. + dij_sq)
 
-                # New Fix
-                mult = qij * qij * dij
-
-                # Old Solution
-                # mult = qij * qij
+                if GRAD_FIX:
+                    # New Fix
+                    mult = qij * qij * dij
+                else:
+                    # Old Solution
+                    mult = qij * qij
 
                 sum_Q += qij
                 for ax in range(n_dimensions):
@@ -1177,11 +1179,13 @@ cdef double compute_gradient_positive(double[:] val_P,
                 dij_sq = dij * dij
 
                 qij = 1. / (1. + dij_sq)
-                # New Fix
-                mult = pij * qij * dij
 
-                # Old solution
-                # mult = pij * qij
+                if GRAD_FIX:
+                    # New Fix
+                    mult = pij * qij * dij
+                else:
+                    # Old solution
+                    mult = pij * qij
 
                 # only compute the error when needed
                 if compute_error:
@@ -1255,11 +1259,12 @@ cdef double compute_gradient_negative(double[:, :] pos_reference,
 
                 sum_Q += size * qijZ   # size of the node * q
 
-                # New Fix
-                mult = size * qijZ * qijZ * sqrt(dist2s)
-
-                # Old Solution
-                # mult = size * qijZ * qijZ
+                if GRAD_FIX:
+                    # New Fix
+                    mult = size * qijZ * qijZ * sqrt(dist2s)
+                else:
+                    # Old Solution
+                    mult = size * qijZ * qijZ
 
                 for ax in range(n_dimensions):
                     neg_force[ax] += mult * summary[j * offset + ax]
@@ -1298,7 +1303,8 @@ def gradient(float[:] timings,
              bint compute_error=1,
              int num_threads=1,
              bint exact=1,
-             bint area_split=0):
+             bint area_split=0,
+             bint grad_fix=0):
     cdef double C
     cdef int n
     cdef _QuadTree qt = _QuadTree(pos_output.shape[1], verbose)
@@ -1306,6 +1312,9 @@ def gradient(float[:] timings,
 
     global AREA_SPLIT
     AREA_SPLIT = area_split
+
+    global GRAD_FIX
+    GRAD_FIX = grad_fix
 
     if not exact:
         if TAKE_TIMING:

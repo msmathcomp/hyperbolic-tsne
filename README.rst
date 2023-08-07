@@ -68,3 +68,10 @@ We compare our method with theirs.
 - [9] Moignard, V. et al. Decoding the regulatory network of early blood development from single-cell gene expression measurements. Nat. Biotechnol. 33, 269 (2015).
 - [10] Plass, M. et al. Cell type atlas and lineage tree of a whole complex animal by single-cell transcriptomics. Science 360, eaaq1723 (2018).
 - [11] Packer, J. S. et al. A lineage-resolved molecular atlas of C. elegans embryogenesis at single-cell resolution. Science 365, eaax1971 (2019).
+
+
+## How to install
+
+`cd hyperbolic-tsne`
+`python setup.py build_ext --inplace`
+`pip install .`

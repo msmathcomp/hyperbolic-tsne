@@ -69,4 +69,5 @@ def animate(log_dict, labels, file_name, fast=False, is_hyperbolic=True, plot_ee
     anim.save(file_name)
 
     plt.clf()
+    plt.close()
     pbar.close()

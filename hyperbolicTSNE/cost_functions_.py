@@ -18,7 +18,7 @@ import numpy as np
 from scipy.spatial.distance import pdist
 from scipy.spatial.distance import squareform
 
-from hyperbolicTSNE import tsne_barnes_hut, tsne_barnes_hut_hyperbolic
+from . import tsne_barnes_hut, tsne_barnes_hut_hyperbolic
 from sklearn.utils._openmp_helpers import _openmp_effective_n_threads
 
 MACHINE_EPSILON = np.finfo(np.double).eps
@@ -276,7 +276,7 @@ class HyperbolicKL(BaseCostFunction):
 
     @classmethod
     def check_params(cls, params):
-        general_params = ["num_threads", "verbose", "degrees_of_freedom", "hyperbolic_model", "calc_both", "area_split"]
+        general_params = ["num_threads", "verbose", "degrees_of_freedom", "hyperbolic_model", "calc_both", "area_split", "grad_fix"]
         if params["method"] == "exact":
             all_params = general_params + ["skip_num_points"]
         elif params["method"] == "barnes-hut":
@@ -371,7 +371,8 @@ class HyperbolicKL(BaseCostFunction):
             dof=self.params["params"]["degrees_of_freedom"],
             compute_error=True,
             num_threads=self.params["params"]["num_threads"],
-            exact=True
+            exact=True,
+            grad_fix=self.params["params"]["grad_fix"]
         )
 
         grad = grad.ravel()
@@ -405,7 +406,8 @@ class HyperbolicKL(BaseCostFunction):
             compute_error=True,
             num_threads=self.params["params"]["num_threads"],
             exact=False,
-            area_split=self.params["params"]["area_split"]
+            area_split=self.params["params"]["area_split"],
+            grad_fix=self.params["params"]["grad_fix"]
         )
 
         grad = grad.ravel()

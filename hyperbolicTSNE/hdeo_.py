@@ -5,8 +5,8 @@ from time import time
 import inspect
 from scipy import linalg
 
-import hyperbolicTSNE.hd_mat_ as hd_mat
-from hyperbolicTSNE.initializations_ import initialization
+from . import hd_mat_ as hd_mat
+from .initializations_ import initialization
 from .optimizer_ import BaseOptimizer, SequentialOptimizer
 
 from sklearn.base import BaseEstimator
