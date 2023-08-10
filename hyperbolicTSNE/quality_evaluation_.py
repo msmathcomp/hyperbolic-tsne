@@ -2,7 +2,7 @@
 import numpy as np
 
 from .hd_mat_ import _distance_matrix
-from .tsne_cython.tsne_barnes_hut_hyperbolic import distance_py
+from .tsne_barnes_hut_hyperbolic import distance_py
 
 
 def hyperbolic_nearest_neighbor_preservation(X, Y, k_hyper_approx=100, k_start=1, k_max=15, D_X=None, exact_nn=False,

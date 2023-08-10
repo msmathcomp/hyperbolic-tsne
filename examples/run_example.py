@@ -25,11 +25,11 @@ learning_rate = (dataX.shape[0] * 1) / (12 * 50)
 print(f"learning_rate: {learning_rate}")
 configs = dict(
     v1=dict(learning_rate_ex=learning_rate, learning_rate_main=learning_rate, exaggeration=12, exaggeration_its=250, gradientDescent_its=750, vanilla=True, exact=False, grad_fix=False, grad_scale_fix=False),
-    v2a=dict(learning_rate_ex=learning_rate, learning_rate_main=learning_rate, exaggeration=12, exaggeration_its=250, gradientDescent_its=750, vanilla=True, exact=False, grad_fix=True, grad_scale_fix=False),
+    v2a=dict(learning_rate_ex=50, learning_rate_main=10, exaggeration=12, exaggeration_its=250, gradientDescent_its=200, vanilla=True, exact=False, grad_fix=True, grad_scale_fix=False),
     v2b=dict(learning_rate_ex=learning_rate*10, learning_rate_main=learning_rate*0.2, exaggeration=12, exaggeration_its=250, gradientDescent_its=750, vanilla=True, exact=False, grad_fix=True, grad_scale_fix=True),
-    v3=dict(learning_rate_ex=1, learning_rate_main=1, exaggeration=12, exaggeration_its=250, gradientDescent_its=750, vanilla=False, exact=False, grad_fix=True, grad_scale_fix=True),
+    v3=dict(learning_rate_ex=50, learning_rate_main=10, exaggeration=12, exaggeration_its=250, gradientDescent_its=750, vanilla=False, exact=False, grad_fix=True, grad_scale_fix=True),
 )
-config = configs["v2b"]
+config = configs["v3"]
 print(f"config: {config}")
 
 
