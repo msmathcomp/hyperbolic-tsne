@@ -206,9 +206,7 @@ def gradient_descent(
                 # New Fix
                 if grad_scale_fix:
                     grad = ((1. - np.linalg.norm(y.reshape(n_samples, 2), axis=1) ** 2) ** 2)[:, np.newaxis] * grad.reshape(n_samples, 2) / 4
-                else:
-                    pass
-                grad = grad.flatten()
+                    grad = grad.flatten()
 
                 grad_norm = linalg.norm(grad)
             else:
