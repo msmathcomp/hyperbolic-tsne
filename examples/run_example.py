@@ -1,8 +1,8 @@
 import os
 import traceback
 
-from hyperbolicTSNE.util import find_last_embedding
-from hyperbolicTSNE.visualization import plot_poincare, animate, plot_poincare_zoomed
+from hyperbolicTSNE.util import find_last_embedding, find_ith_embedding
+from hyperbolicTSNE.visualization import plot_poincare, animate, plot_poincare_zoomed, save_poincare_teaser
 from hyperbolicTSNE import load_data, Datasets, SequentialOptimizer, initialization, HDEO
 
 data_home = "../datasets"
@@ -23,20 +23,22 @@ dataX, dataY, D, V = load_data(dataset, data_home=data_home, random_state=seed, 
 
 # originally, the early exaggeration had no momentum. How do they do this in the original tSNE?
 
-learning_rate = (dataX.shape[0] * 10) / (12 * 50)
+learning_rate = (dataX.shape[0] * 1) / (12 * 50)
+learning_rate_scaled = (dataX.shape[0] * 10) / (12 * 50)
 print(f"learning_rate: {learning_rate}")
 configs = dict(
     v1=dict(learning_rate_ex=learning_rate, learning_rate_main=learning_rate, exaggeration=12, exaggeration_its=250, gradientDescent_its=750, vanilla=True, exact=False, grad_fix=False, grad_scale_fix=False),
-    v1b=dict(learning_rate_ex=learning_rate, learning_rate_main=learning_rate, exaggeration=12, exaggeration_its=250, gradientDescent_its=750, vanilla=True, exact=False, grad_fix=False, grad_scale_fix=True),
+    v1b=dict(learning_rate_ex=learning_rate, learning_rate_main=learning_rate, exaggeration=12, exaggeration_its=250, gradientDescent_its=750, vanilla=False, exact=False, grad_fix=False, grad_scale_fix=True),
     v2a=dict(learning_rate_ex=learning_rate, learning_rate_main=learning_rate, exaggeration=12, exaggeration_its=250, gradientDescent_its=750, vanilla=True, exact=False, grad_fix=True, grad_scale_fix=False),
-    v2b=dict(learning_rate_ex=learning_rate, learning_rate_main=learning_rate, exaggeration=12, exaggeration_its=250, gradientDescent_its=750, vanilla=True, exact=False, grad_fix=True, grad_scale_fix=True),
-    v3=dict(learning_rate_ex=learning_rate, learning_rate_main=learning_rate, exaggeration=12, exaggeration_its=250, gradientDescent_its=750, vanilla=False, exact=False, grad_fix=True, grad_scale_fix=True),
+    v2b=dict(learning_rate_ex=learning_rate_scaled, learning_rate_main=learning_rate_scaled, exaggeration=12, exaggeration_its=250, gradientDescent_its=750, vanilla=True, exact=False, grad_fix=True, grad_scale_fix=True),
+    v3=dict(learning_rate_ex=learning_rate_scaled, learning_rate_main=learning_rate_scaled, exaggeration=12, exaggeration_its=250, gradientDescent_its=750, vanilla=False, exact=False, grad_fix=True, grad_scale_fix=True),
 )
-version = "v2b"
+version = "v1b"
 config = configs[version]
 print(f"config: {config}")
 
-
+# for version, config in configs.items():
+print(f"Running version {version}")
 opt_params = SequentialOptimizer.sequence_poincare(**config)
 
 X_embedded = initialization(n_samples=dataX.shape[0],
@@ -76,5 +78,10 @@ fig.savefig(f"../results/{dataset.name}-final.png")
 # fig = plot_poincare_zoomed(res_hdeo_hyper, dataY)
 # fig.show()
 
+# res_hdeo_hyper = find_ith_embedding(log_path, 250)
+save_poincare_teaser(res_hdeo_hyper,
+                     f"../results/{version}_{dataset.name}-teaser.pdf",
+                     dataset=dataset)
+
 animate(logging_dict, dataY, f"../results/{version}_{dataset.name}_fast.mp4", fast=True, plot_ee=True)
-animate(logging_dict, dataY, f"../results/{version}_{dataset.name}.mp4")
+# animate(logging_dict, dataY, f"../results/{version}_{dataset.name}.mp4")
