@@ -107,7 +107,9 @@ for dataset in datasets:
                                                                learning_rate_main=LR, # TODO: change based on dataset size?
                                                                vanilla=VANILLA,
                                                                exact=(tsne_type == "exact"),
-                                                               area_split=(splitting_strategy == "equal_area"))
+                                                               area_split=(splitting_strategy == "equal_area"),
+                                                               grad_fix=True,
+                                                               grad_scale_fix=True)
 
             run_dir = Path(f"{BASE_DIR}/{dataset.name}/size_{sample_size}/configuration_{config_id}/run_{run_n}/")
 

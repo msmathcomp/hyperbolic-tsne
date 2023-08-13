@@ -7,8 +7,8 @@ from hyperbolicTSNE import load_data, Datasets, SequentialOptimizer, initializat
 
 data_home = "../datasets"
 
-# Based on nicolas_exp_log
-# - do not forget to do changes to code when switching between v1 and v2
+# TODO Based on nicolas_exp_log
+# TODO - do not forget to do changes to code when switching between v1 and v2
 
 only_animate = False
 
@@ -17,23 +17,23 @@ seed = 42
 # dataX, dataY, D, V, _ = load_data(dataset, data_home=data_home, random_state=seed, to_return="X_labels_D_V",
 #                                     hd_params={"perplexity": 30}, knn_method="hnswlib", sample=10000, verbose=True)
 
-dataset = Datasets.MYELOID
+dataset = Datasets.C_ELEGANS
 dataX, dataY, D, V = load_data(dataset, data_home=data_home, random_state=seed, to_return="X_labels_D_V",
                                hd_params={"perplexity": 30})
 
-# originally, the early exaggeration had no momentum. How do they do this in the original tSNE?
+# TODO: originally, the early exaggeration had no momentum. How do they do this in the original tSNE?
 
 learning_rate = (dataX.shape[0] * 1) / (12 * 50)
 learning_rate_scaled = (dataX.shape[0] * 10) / (12 * 50)
-print(f"learning_rate: {learning_rate}")
+iterations = 1500
 configs = dict(
-    v1=dict(learning_rate_ex=learning_rate, learning_rate_main=learning_rate, exaggeration=12, exaggeration_its=250, gradientDescent_its=750, vanilla=True, exact=False, grad_fix=False, grad_scale_fix=False),
-    v1b=dict(learning_rate_ex=learning_rate, learning_rate_main=learning_rate, exaggeration=12, exaggeration_its=250, gradientDescent_its=750, vanilla=False, exact=False, grad_fix=False, grad_scale_fix=True),
-    v2a=dict(learning_rate_ex=learning_rate, learning_rate_main=learning_rate, exaggeration=12, exaggeration_its=250, gradientDescent_its=750, vanilla=True, exact=False, grad_fix=True, grad_scale_fix=False),
-    v2b=dict(learning_rate_ex=learning_rate_scaled, learning_rate_main=learning_rate_scaled, exaggeration=12, exaggeration_its=250, gradientDescent_its=750, vanilla=True, exact=False, grad_fix=True, grad_scale_fix=True),
-    v3=dict(learning_rate_ex=learning_rate_scaled, learning_rate_main=learning_rate_scaled, exaggeration=12, exaggeration_its=250, gradientDescent_its=750, vanilla=False, exact=False, grad_fix=True, grad_scale_fix=True),
+    v1=dict(learning_rate_ex=learning_rate, learning_rate_main=learning_rate, exaggeration=12, exaggeration_its=250, gradientDescent_its=iterations, vanilla=True, exact=False, grad_fix=False, grad_scale_fix=False),
+    v1b=dict(learning_rate_ex=learning_rate, learning_rate_main=learning_rate, exaggeration=12, exaggeration_its=250, gradientDescent_its=iterations, vanilla=False, exact=False, grad_fix=False, grad_scale_fix=True),
+    v2a=dict(learning_rate_ex=learning_rate, learning_rate_main=learning_rate, exaggeration=12, exaggeration_its=250, gradientDescent_its=iterations, vanilla=True, exact=False, grad_fix=True, grad_scale_fix=False),
+    v2b=dict(learning_rate_ex=learning_rate_scaled, learning_rate_main=learning_rate_scaled, exaggeration=12, exaggeration_its=250, gradientDescent_its=iterations, vanilla=True, exact=False, grad_fix=True, grad_scale_fix=True),
+    v3=dict(learning_rate_ex=learning_rate_scaled, learning_rate_main=learning_rate_scaled, exaggeration=12, exaggeration_its=250, gradientDescent_its=iterations, vanilla=False, exact=False, grad_fix=True, grad_scale_fix=True),
 )
-version = "v1b"
+version = "v3"
 config = configs[version]
 print(f"config: {config}")
 
