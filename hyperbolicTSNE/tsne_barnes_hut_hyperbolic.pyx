@@ -485,8 +485,10 @@ cdef class _QuadTree:
 
         width = max(distance_polar(child.max_bounds[RANGE], child.min_bounds[ANGLE],
                                    child.max_bounds[RANGE], child.max_bounds[ANGLE]),
-                        distance_polar(child.max_bounds[RANGE], child.min_bounds[ANGLE],
-                                       child.min_bounds[RANGE], child.min_bounds[ANGLE]))
+                    distance_polar(child.max_bounds[RANGE], child.min_bounds[ANGLE],
+                                   child.min_bounds[RANGE], child.max_bounds[ANGLE]),
+                    distance_polar(child.max_bounds[RANGE], child.min_bounds[ANGLE],
+                                   child.min_bounds[RANGE], child.min_bounds[ANGLE]))
 
         # width = distance_polar(child.max_bounds[RANGE], child.min_bounds[ANGLE],
         #                        child.max_bounds[RANGE], child.max_bounds[ANGLE])
@@ -563,8 +565,11 @@ cdef class _QuadTree:
         # printf("[QuadTree] Width: %e\n", width)
         width = max(distance_polar(max_bounds[RANGE], min_bounds[ANGLE],
                                    max_bounds[RANGE], max_bounds[ANGLE]),
-                        distance_polar(max_bounds[RANGE], min_bounds[ANGLE],
-                                       min_bounds[RANGE], min_bounds[ANGLE]))
+                    distance_polar(max_bounds[RANGE], min_bounds[ANGLE],
+                                   min_bounds[RANGE], max_bounds[ANGLE]),
+                    distance_polar(max_bounds[RANGE], min_bounds[ANGLE],
+                                   min_bounds[RANGE], min_bounds[ANGLE]))
+
         root.squared_max_width =  width * width
         root.cell_id = 0
 
