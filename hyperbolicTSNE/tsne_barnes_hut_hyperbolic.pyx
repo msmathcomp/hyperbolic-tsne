@@ -174,6 +174,11 @@ cdef DTYPE_t mid_range(DTYPE_t min_r, DTYPE_t max_r) nogil:
     else:
         return (min_r + max_r) / 2
 
+cdef DTYPE_t get_max_for_polar_rect(DTYPE_t[2] min_bounds, DTYPE_t[2] max_bounds) nogil:
+    return max(distance_polar(max_bounds[RANGE], min_bounds[ANGLE], max_bounds[RANGE], max_bounds[ANGLE]),
+               distance_polar(max_bounds[RANGE], min_bounds[ANGLE], min_bounds[RANGE], max_bounds[ANGLE]),
+               distance_polar(max_bounds[RANGE], min_bounds[ANGLE], min_bounds[RANGE], min_bounds[ANGLE]))
+
 cdef class _QuadTree:
     """Array-based representation of a QuadTree.
 
@@ -483,16 +488,7 @@ cdef class _QuadTree:
                             poincare_to_klein(child.barycenter[1], temp_norm))
         child.lorentz_factor_sum = lorentz_factor(temp_norm)
 
-        width = max(distance_polar(child.max_bounds[RANGE], child.min_bounds[ANGLE],
-                                   child.max_bounds[RANGE], child.max_bounds[ANGLE]),
-                    distance_polar(child.max_bounds[RANGE], child.min_bounds[ANGLE],
-                                   child.min_bounds[RANGE], child.max_bounds[ANGLE]),
-                    distance_polar(child.max_bounds[RANGE], child.min_bounds[ANGLE],
-                                   child.min_bounds[RANGE], child.min_bounds[ANGLE]))
-
-        # width = distance_polar(child.max_bounds[RANGE], child.min_bounds[ANGLE],
-        #                        child.max_bounds[RANGE], child.max_bounds[ANGLE])
-
+        width = get_max_for_polar_rect(child.min_bounds, child.max_bounds)
         child.squared_max_width = width * width
 
         # Store the point info and the size to account for duplicated points
@@ -560,16 +556,7 @@ cdef class _QuadTree:
         root.center[ANGLE] = (max_bounds[ANGLE] + min_bounds[ANGLE]) / 2.
         root.center[RANGE] = mid_range(min_bounds[RANGE], max_bounds[RANGE])
 
-        # width = distance_polar(max_bounds[RANGE], min_bounds[ANGLE], max_bounds[RANGE], max_bounds[ANGLE])
-        # # TODO: check
-        # printf("[QuadTree] Width: %e\n", width)
-        width = max(distance_polar(max_bounds[RANGE], min_bounds[ANGLE],
-                                   max_bounds[RANGE], max_bounds[ANGLE]),
-                    distance_polar(max_bounds[RANGE], min_bounds[ANGLE],
-                                   min_bounds[RANGE], max_bounds[ANGLE]),
-                    distance_polar(max_bounds[RANGE], min_bounds[ANGLE],
-                                   min_bounds[RANGE], min_bounds[ANGLE]))
-
+        width = get_max_for_polar_rect(min_bounds, max_bounds)
         root.squared_max_width =  width * width
         root.cell_id = 0
 
