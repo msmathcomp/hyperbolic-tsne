@@ -1,6 +1,9 @@
 import os
 import traceback
 
+import sys
+sys.path.insert(0, "..")
+
 from hyperbolicTSNE.util import find_last_embedding, find_ith_embedding
 from hyperbolicTSNE.visualization import plot_poincare, animate, plot_poincare_zoomed, save_poincare_teaser
 from hyperbolicTSNE import load_data, Datasets, SequentialOptimizer, initialization, HDEO
@@ -18,24 +21,34 @@ seed = 42
 #                                     hd_params={"perplexity": 30}, knn_method="hnswlib", sample=10000, verbose=True)
 
 dataset = Datasets.C_ELEGANS
-dataX, dataY, D, V = load_data(dataset, data_home=data_home, random_state=seed, to_return="X_labels_D_V",
-                               hd_params={"perplexity": 30})
+dataX, dataY, D, V, _ = load_data(dataset, data_home=data_home, random_state=seed, to_return="X_labels_D_V",
+                               hd_params={"perplexity": 30}, sample=70000)
 
 # TODO: originally, the early exaggeration had no momentum. How do they do this in the original tSNE?
 
 learning_rate = (dataX.shape[0] * 1) / (12 * 50)
-learning_rate_scaled = (dataX.shape[0] * 10) / (12 * 50)
-iterations = 1500
+learning_rate_scaled = (dataX.shape[0] * 1) / (12 * 50)
+EXAG = 12
+learning_rate_v4 = (dataX.shape[0] * 1) / (EXAG * 50)
+learning_rate_v5 = (dataX.shape[0] * 1) / (EXAG * 1)
+iterations = 750
 configs = dict(
     v1=dict(learning_rate_ex=learning_rate, learning_rate_main=learning_rate, exaggeration=12, exaggeration_its=250, gradientDescent_its=iterations, vanilla=True, exact=False, grad_fix=False, grad_scale_fix=False),
     v1b=dict(learning_rate_ex=learning_rate, learning_rate_main=learning_rate, exaggeration=12, exaggeration_its=250, gradientDescent_its=iterations, vanilla=False, exact=False, grad_fix=False, grad_scale_fix=True),
     v2a=dict(learning_rate_ex=learning_rate, learning_rate_main=learning_rate, exaggeration=12, exaggeration_its=250, gradientDescent_its=iterations, vanilla=True, exact=False, grad_fix=True, grad_scale_fix=False),
     v2b=dict(learning_rate_ex=learning_rate_scaled, learning_rate_main=learning_rate_scaled, exaggeration=12, exaggeration_its=250, gradientDescent_its=iterations, vanilla=True, exact=False, grad_fix=True, grad_scale_fix=True),
-    v3=dict(learning_rate_ex=learning_rate_scaled, learning_rate_main=learning_rate_scaled, exaggeration=12, exaggeration_its=250, gradientDescent_its=iterations, vanilla=False, exact=False, grad_fix=True, grad_scale_fix=True),
+    v3=dict(learning_rate_ex=learning_rate_scaled * 0.01, learning_rate_main=learning_rate_scaled * 0.01, exaggeration=12, exaggeration_its=250, gradientDescent_its=iterations, vanilla=False, exact=False, grad_fix=True, grad_scale_fix=True),
+    # V1 with momentum and VDM scheme
+    v4=dict(learning_rate_ex=learning_rate_v4, learning_rate_main=learning_rate_v4, exaggeration=EXAG, exaggeration_its=250, gradientDescent_its=iterations, vanilla=False, momentum_ex=0.05, momentum=0.1, exact=False, grad_fix=False, grad_scale_fix=False),
+    # V2 with momentum and VDM scheme
+    v5=dict(learning_rate_ex=learning_rate_v5, learning_rate_main=learning_rate_v5, exaggeration=EXAG, exaggeration_its=250, gradientDescent_its=iterations, vanilla=False, momentum_ex=0.05, momentum=0.1, exact=False, grad_fix=True, grad_scale_fix=True),
 )
-version = "v3"
+version = "v4"
 config = configs[version]
 print(f"config: {config}")
+
+config["n_iter_check"] = 10
+config["size_tol"] = 0.999
 
 # for version, config in configs.items():
 print(f"Running version {version}")
@@ -79,9 +92,9 @@ fig.savefig(f"../results/{dataset.name}-final.png")
 # fig.show()
 
 # res_hdeo_hyper = find_ith_embedding(log_path, 250)
-save_poincare_teaser(res_hdeo_hyper,
-                     f"../results/{version}_{dataset.name}-teaser.pdf",
-                     dataset=dataset)
+# save_poincare_teaser(res_hdeo_hyper,
+#                      f"../results/{version}_{dataset.name}-teaser.pdf",
+#                      dataset=dataset)
 
 animate(logging_dict, dataY, f"../results/{version}_{dataset.name}_fast.mp4", fast=True, plot_ee=True)
 # animate(logging_dict, dataY, f"../results/{version}_{dataset.name}.mp4")

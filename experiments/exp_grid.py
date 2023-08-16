@@ -44,9 +44,10 @@ RUNS = 5
 SIZE_SAMPLES = 10  # How many sizes to consider in the interval
 
 PERP = 30
-LR = 1
-KNN_METHOD = ["sklearn", "hnswlib"][1]
-VANILLA = True  # whether to use momentum or not
+# LR = 1  # Defined with heuristic (see below)
+KNN_METHOD = ["sklearn", "hnswlib"][0]
+VANILLA = False  # whether to use momentum or not
+EXAG = 12
 
 hd_params = {
     "perplexity": PERP
@@ -103,13 +104,18 @@ for dataset in datasets:
 
             D, V = hd_matrix(X=dataX_sample, hd_params=hd_params, knn_method=KNN_METHOD)
 
+            LR = (dataX_sample.shape[0] * 1) / (EXAG * 50)
+
             opt_params = SequentialOptimizer.sequence_poincare(learning_rate_ex=LR,  # TODO: change based on dataset size?
                                                                learning_rate_main=LR, # TODO: change based on dataset size?
+                                                               exaggeration=EXAG,
                                                                vanilla=VANILLA,
+                                                               momentum_ex=0.05,
+                                                               momentum=0.1,
                                                                exact=(tsne_type == "exact"),
                                                                area_split=(splitting_strategy == "equal_area"),
-                                                               grad_fix=True,
-                                                               grad_scale_fix=True)
+                                                               grad_fix=False,
+                                                               grad_scale_fix=False)
 
             run_dir = Path(f"{BASE_DIR}/{dataset.name}/size_{sample_size}/configuration_{config_id}/run_{run_n}/")
 

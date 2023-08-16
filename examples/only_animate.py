@@ -5,14 +5,14 @@ from hyperbolicTSNE import load_data, Datasets
 data_home = "../datasets"
 
 seed = 42
-dataset = Datasets.C_ELEGANS
-dataY = load_data(dataset, data_home=data_home, random_state=42, to_return="labels", hd_params={"perplexity": 30})
+# dataset = Datasets.C_ELEGANS
+# dataY = load_data(dataset, data_home=data_home, random_state=42, to_return="labels", hd_params={"perplexity": 30})
 # dataX, dataY, D, V = load_data(dataset, data_home=data_home, random_state=seed, to_return="labels",
 #                                     hd_params={"perplexity": 30})
 
-# dataset = Datasets.MNIST
-# dataX, dataY, D, V, _ = load_data(dataset, data_home=data_home, random_state=seed, to_return="X_labels_D_V",
-#                                     hd_params={"perplexity": 30}, knn_method="hnswlib", sample=10000, verbose=True)
+dataset = Datasets.MNIST
+dataY = load_data(dataset, data_home=data_home, random_state=seed, to_return="labels",
+                                    hd_params={"perplexity": 30}, knn_method="hnswlib", sample=70000, verbose=True)
 
 logging_dict = {
     "log_path": "../temp/poincare/"

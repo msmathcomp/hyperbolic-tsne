@@ -338,7 +338,7 @@ class HyperbolicKL(BaseCostFunction):
     def obj_grad(self, Y, *, V, forces="total", per_point=False):
         n_samples = V.shape[0]
         if self.params["method"] == "exact":
-            obj, grad = self._grad_exact(Y, V, n_samples, forces, per_point)
+            obj, grad = self._grad_exact(Y, V, n_samples)
             return obj, grad
         elif self.params["method"] == "barnes-hut":
             obj, grad = self._obj_bh(Y, V, n_samples)

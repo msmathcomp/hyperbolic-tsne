@@ -59,8 +59,8 @@ def log_iteration(logging_dict, logging_key, it, y, n_samples, n_components,
 def gradient_descent(
         y0, cf, cf_params, *, start_it=0, n_iter=100, n_iter_check=np.inf, n_iter_without_progress=300,
         threshold_cf=0., threshold_its=-1, threshold_check_size=-1.,
-        momentum=0.8, learning_rate=200.0, min_gain=0.01, vanilla=False, min_grad_norm=1e-7, error_tol=1e-9, verbose=0,
-        rescale=None, n_iter_rescale=np.inf, gradient_mask=np.ones, grad_scale_fix=False,
+        momentum=0.8, learning_rate=200.0, min_gain=0.01, vanilla=False, min_grad_norm=1e-7, error_tol=1e-9, size_tol=None,
+        verbose=0, rescale=None, n_iter_rescale=np.inf, gradient_mask=np.ones, grad_scale_fix=False,
         logging_dict=None, logging_key=None,
 ):
     """Batch gradient descent with momentum and individual gains.
@@ -112,6 +112,9 @@ def gradient_descent(
         If the difference between the previous lowest error and the current one (defined by
         the n_iter_check param) is below this threshold, the optimization will
         be aborted.
+    size_tol : float, optional (default: None)
+        If the distance from a point to the center surpases the size_tol, then the optimization
+        will be aborted.
     verbose : int, optional (default: 0)
         Verbosity level.
     rescale: float, optional (default: None)
@@ -229,12 +232,12 @@ def gradient_descent(
                                                    cf.params["params"]["num_threads"])
                 y = res.ravel()
             else:
-                # inc = update * grad < 0.0
-                # dec = np.invert(inc)
-                # gains[inc] += 0.2
-                # gains[dec] *= 0.8
-                # np.clip(gains, min_gain, np.inf, out=gains)
-                # grad *= gains
+                inc = update * grad < 0.0
+                dec = np.invert(inc)
+                gains[inc] += 0.2
+                gains[dec] *= 0.8
+                np.clip(gains, min_gain, np.inf, out=gains)
+                grad *= gains
                 update = momentum * update - learning_rate * grad
                 # y = Model.exp_map(y, update * gradient_mask, n_samples)
                 res_exp = np.empty((n_samples, 2), dtype=ctypes.c_double)
@@ -403,6 +406,13 @@ def gradient_descent(
                     print("[t-SNE] Iteration %d: gradient norm %f. Finished."
                           % (i + 1, grad_norm))
                 print("3")
+                break
+            
+            emb_point_dists = np.linalg.norm(y.reshape((n_samples, -1)), axis=1).max() 
+            if size_tol is not None and emb_point_dists > size_tol:
+                if verbose >= 2:
+                    print("[t-SNE] Iteration %d: max size %f. Finished." % (i + 1, emb_point_dists))
+                print("4")
                 break
     # FIXME Is this logging necessary as log iteration is called above already for all iterations?!
     # if logging:
