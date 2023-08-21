@@ -115,7 +115,10 @@ for dataset in datasets:
                                                                exact=(tsne_type == "exact"),
                                                                area_split=(splitting_strategy == "equal_area"),
                                                                grad_fix=False,
-                                                               grad_scale_fix=False)
+                                                               grad_scale_fix=False,
+                                                               n_iter_check=10,  # Needed for size check
+                                                               size_tol=0.999)  # Needed for size check
+            
 
             run_dir = Path(f"{BASE_DIR}/{dataset.name}/size_{sample_size}/configuration_{config_id}/run_{run_n}/")
 
