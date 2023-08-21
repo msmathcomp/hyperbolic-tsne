@@ -104,14 +104,14 @@ for dataset in datasets:
 
             D, V = hd_matrix(X=dataX_sample, hd_params=hd_params, knn_method=KNN_METHOD)
 
-            LR = (dataX_sample.shape[0] * 1) / (EXAG * 50)
+            LR = (dataX_sample.shape[0] * 1) / (EXAG * 1000)
 
             opt_params = SequentialOptimizer.sequence_poincare(learning_rate_ex=LR,  # TODO: change based on dataset size?
                                                                learning_rate_main=LR, # TODO: change based on dataset size?
                                                                exaggeration=EXAG,
                                                                vanilla=VANILLA,
-                                                               momentum_ex=0.05,
-                                                               momentum=0.1,
+                                                               momentum_ex=0.5,
+                                                               momentum=0.8,
                                                                exact=(tsne_type == "exact"),
                                                                area_split=(splitting_strategy == "equal_area"),
                                                                grad_fix=False,
