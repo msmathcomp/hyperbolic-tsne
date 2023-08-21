@@ -20,16 +20,16 @@ seed = 42
 # dataX, dataY, D, V, _ = load_data(dataset, data_home=data_home, random_state=seed, to_return="X_labels_D_V",
 #                                     hd_params={"perplexity": 30}, knn_method="hnswlib", sample=10000, verbose=True)
 
-dataset = Datasets.C_ELEGANS
+dataset = Datasets.MNIST
 dataX, dataY, D, V, _ = load_data(dataset, data_home=data_home, random_state=seed, to_return="X_labels_D_V",
-                               hd_params={"perplexity": 30}, sample=70000)
+                               hd_params={"perplexity": 30}, sample=35000, knn_method="hnswlib")
 
 # TODO: originally, the early exaggeration had no momentum. How do they do this in the original tSNE?
 
 learning_rate = (dataX.shape[0] * 1) / (12 * 50)
 learning_rate_scaled = (dataX.shape[0] * 1) / (12 * 50)
 EXAG = 12
-learning_rate_v4 = (dataX.shape[0] * 1) / (EXAG * 50)
+learning_rate_v4 = (dataX.shape[0] * 1) / (EXAG * 1000)
 learning_rate_v5 = (dataX.shape[0] * 1) / (EXAG * 1)
 iterations = 750
 configs = dict(
@@ -39,10 +39,10 @@ configs = dict(
     v2b=dict(learning_rate_ex=learning_rate_scaled, learning_rate_main=learning_rate_scaled, exaggeration=12, exaggeration_its=250, gradientDescent_its=iterations, vanilla=True, exact=False, grad_fix=True, grad_scale_fix=True),
     v3=dict(learning_rate_ex=learning_rate_scaled * 0.01, learning_rate_main=learning_rate_scaled * 0.01, exaggeration=12, exaggeration_its=250, gradientDescent_its=iterations, vanilla=False, exact=False, grad_fix=True, grad_scale_fix=True),
     # V1 with momentum and VDM scheme
-    v4=dict(learning_rate_ex=learning_rate_v4, learning_rate_main=learning_rate_v4, exaggeration=EXAG, exaggeration_its=250, gradientDescent_its=iterations, vanilla=False, momentum_ex=0.05, momentum=0.1, exact=False, grad_fix=False, grad_scale_fix=False),
+    v4=dict(learning_rate_ex=learning_rate_v4, learning_rate_main=learning_rate_v4, exaggeration=EXAG, exaggeration_its=250, gradientDescent_its=iterations, vanilla=False, momentum_ex=0.5, momentum=0.8, exact=False, grad_fix=False, grad_scale_fix=False),
     # V2 with momentum and VDM scheme
     v5=dict(learning_rate_ex=learning_rate_v5, learning_rate_main=learning_rate_v5, exaggeration=EXAG, exaggeration_its=250, gradientDescent_its=iterations, vanilla=False, momentum_ex=0.05, momentum=0.1, exact=False, grad_fix=True, grad_scale_fix=True),
-)
+)  
 version = "v4"
 config = configs[version]
 print(f"config: {config}")
