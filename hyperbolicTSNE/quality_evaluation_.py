@@ -5,8 +5,9 @@ from .hd_mat_ import _distance_matrix
 from .tsne_barnes_hut_hyperbolic import distance_py
 
 
-def hyperbolic_nearest_neighbor_preservation(X, Y, k_hyper_approx=100, k_start=1, k_max=15, D_X=None, exact_nn=False,
-                                             consider_order=False, strict=False, to_return="aggregated"):
+def hyperbolic_nearest_neighbor_preservation(X, Y, k_start=1, k_max=15, D_X=None, exact_nn=False,
+                                             consider_order=False, strict=False, to_return="aggregated",
+                                             k_hyper_approx=100):
     """
     Approximates the nearest neighbor preservation of the hyperbolic embedding `Y` in the poincare disk
     of the high-dimensional data `X`. See Section 6 of
@@ -62,6 +63,13 @@ def hyperbolic_nearest_neighbor_preservation(X, Y, k_hyper_approx=100, k_start=1
         D_X = _distance_matrix(X, method=nn_method, n_neighbors=k_max)
     D_Y = _distance_matrix(Y, method=nn_method, n_neighbors=k_hyper_approx)
 
+    # for r in range(D_Y.shape[0]):
+    #     for ind in range(D_Y.indptr[r], D_Y.indptr[r + 1]):
+    #         i = r
+    #         j = D_Y.indices[ind]
+    #
+    #         D_Y[i, j] = distance_py(Y[i], Y[j])
+
     num_points = D_X.shape[0]
     num_available_nn_hd = D_X[0, :].nnz
     num_available_nn_ld = D_Y[0, :].nnz
@@ -98,7 +106,9 @@ def hyperbolic_nearest_neighbor_preservation(X, Y, k_hyper_approx=100, k_start=1
     nz_dists_D_Y = np.asarray(D_Y[nz_rows_D_Y, nz_cols_D_Y].todense())
     sorting_ids_nz_dists_D_Y = np.argsort(nz_dists_D_Y, axis=1)
     sorted_nz_cols_D_Y = nz_cols_D_Y[nz_rows_D_Y, sorting_ids_nz_dists_D_Y]  # sorted cols of nz_D_Y
-    sorted_nz_cols_D_Y = sorted_nz_cols_D_Y[:, 0:k_hyper_approx]  # only get NNs that will be used
+
+    # Replace with hyperbolic distances for the closest k_hyper_approx
+    sorted_nz_cols_D_Y = sorted_nz_cols_D_Y[:, 0:k_hyper_approx]
 
     arr = np.zeros(sorted_nz_cols_D_Y.shape)
     for (i, j), v in np.ndenumerate(sorted_nz_cols_D_Y):
@@ -106,6 +116,7 @@ def hyperbolic_nearest_neighbor_preservation(X, Y, k_hyper_approx=100, k_start=1
 
     sorting_ids_arr = np.argsort(arr, axis=1)
     sorted_nz_cols_D_Y = sorted_nz_cols_D_Y[nz_rows_D_Y, sorting_ids_arr]
+
     sorted_nz_cols_D_Y = sorted_nz_cols_D_Y[:, 0:k_max]  # only get NNs that will be used
 
     # Compute metrics

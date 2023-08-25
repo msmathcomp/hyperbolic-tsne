@@ -24,7 +24,7 @@ import matplotlib.pyplot as plt
 
 from hyperbolicTSNE.quality_evaluation_ import hyperbolic_nearest_neighbor_preservation
 from hyperbolicTSNE import Datasets, load_data
-
+from hyperbolicTSNE.util import find_last_embedding
 
 BASE_DIR = Path("../results/exp_grid")
 DATASETS_DIR = "../datasets"
@@ -34,11 +34,10 @@ K_START = 1
 K_MAX = 10
 EXACT_NN = False
 CONSIDER_ORDER = False
-STRICT = True
+STRICT = False
 TO_RETURN = "full"
 
 PERP = 30
-KNN_METHOD = ["sklearn", "hnswlib"][1]
 
 hd_params = {
     "perplexity": PERP
@@ -47,7 +46,7 @@ hd_params = {
 for dataset_dir in BASE_DIR.glob("*"):
     if dataset_dir.is_dir():
         dataset_name = dataset_dir.stem
-        dataX, _ = load_data(Datasets[dataset_name], data_home=DATASETS_DIR, to_return="X_labels", hd_params=hd_params, knn_method=KNN_METHOD)
+        dataX = load_data(Datasets[dataset_name], data_home=DATASETS_DIR, to_return="X", hd_params=hd_params)
         for size_dir in dataset_dir.glob("*"):
             if size_dir.is_dir():
                 for config_dir in size_dir.glob("*"):
@@ -63,14 +62,23 @@ for dataset_dir in BASE_DIR.glob("*"):
                                 if sparse_D:
                                     D_X = load_npz(D_path)
                                 else:
-                                    D_X = np.load(D_path, allow_pickle=True)
+                                    D_X = np.load(D_path, allow_pickle=True)[()]
+
+                                # dataY = find_last_embedding(run_dir.joinpath("embeddings"))
 
                                 dataY = np.load(run_dir.joinpath("final_embedding.npy"), allow_pickle=True)
-                                
-                                thresholds, precisions, recalls, true_positives = hyperbolic_nearest_neighbor_preservation(dataX_sample, dataY, 
-                                                                                                                           NEIGHBORHOOD_SIZE, K_START, K_MAX, 
-                                                                                                                           D_X, 
-                                                                                                                           EXACT_NN, CONSIDER_ORDER, STRICT, TO_RETURN)
+
+                                thresholds, precisions, recalls, true_positives = \
+                                    hyperbolic_nearest_neighbor_preservation(dataX_sample,
+                                                                             dataY,
+                                                                             K_START,
+                                                                             K_MAX,
+                                                                             D_X,
+                                                                             EXACT_NN,
+                                                                             CONSIDER_ORDER,
+                                                                             STRICT,
+                                                                             TO_RETURN,
+                                                                             NEIGHBORHOOD_SIZE)
 
                                 # save results inside folder
                                 np.save(run_dir.joinpath("thresholds.npy"), thresholds)
@@ -82,6 +90,6 @@ for dataset_dir in BASE_DIR.glob("*"):
                                 fig, ax = plt.subplots()
                                 ax.scatter(precisions, recalls)
                                 ax.set_xlabel("Precision")
-                                ax.set_ylabel("Recall")                                
+                                ax.set_ylabel("Recall")
                                 fig.savefig(run_dir.joinpath(f"prec-vs-rec.png"))
                                 plt.close(fig)
