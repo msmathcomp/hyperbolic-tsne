@@ -56,12 +56,12 @@ hd_params = {
 # Variables
 
 datasets = [
-    # Datasets.LUKK, 
-    # Datasets.MYELOID8000, 
-    # Datasets.PLANARIA,
-    Datasets.MNIST, 
-    # Datasets.C_ELEGANS, 
-    # Datasets.WORDNET
+    Datasets.LUKK,
+    Datasets.MYELOID8000,
+    Datasets.PLANARIA,
+    Datasets.MNIST,
+    Datasets.C_ELEGANS,
+    Datasets.WORDNET
     ]
 
 tsne_types = ["accelerated", "exact"]
@@ -87,10 +87,17 @@ for dataset in datasets:
                                 random_state=rng.integers(0, 1000000),
                                 method="pca")
 
-    for config_id, config in enumerate(product(sample_sizes, tsne_types, splitting_strategies)):        
+    for config_id, config in enumerate(product(sample_sizes, tsne_types, splitting_strategies)):
+
+        sample_size, tsne_type, splitting_strategy = config
+
+        # We only have to run one version of exact t-SNE, so we use the combination "exact" + "equal_length" (which
+        # does not use the splitting property anyway since it is exact). Hence, we can skip the "equal_area" version
+        # here as it does not provide more data.
+        if tsne_tpye == "exact" and splitting_strategy == "equal_area":
+            continue
+
         for run_n in range(RUNS):
-            
-            sample_size, tsne_type, splitting_strategy = config
             
             print(f"[experiment_grid] Processing {dataset}, run_id {run_n}, config_id ({config_id}): {config}")
 
