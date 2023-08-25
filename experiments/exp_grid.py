@@ -57,11 +57,11 @@ hd_params = {
 
 datasets = [
     Datasets.LUKK,
-    Datasets.MYELOID8000,
-    Datasets.PLANARIA,
-    Datasets.MNIST,
-    Datasets.C_ELEGANS,
-    Datasets.WORDNET
+#    Datasets.MYELOID8000,
+#    Datasets.PLANARIA,
+#    Datasets.MNIST,
+#    Datasets.C_ELEGANS,
+#    Datasets.WORDNET
     ]
 
 tsne_types = ["accelerated", "exact"]
@@ -94,7 +94,7 @@ for dataset in datasets:
         # We only have to run one version of exact t-SNE, so we use the combination "exact" + "equal_length" (which
         # does not use the splitting property anyway since it is exact). Hence, we can skip the "equal_area" version
         # here as it does not provide more data.
-        if tsne_tpye == "exact" and splitting_strategy == "equal_area":
+        if tsne_type == "exact" and splitting_strategy == "equal_area":
             continue
 
         for run_n in range(RUNS):
