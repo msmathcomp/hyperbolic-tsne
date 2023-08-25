@@ -855,9 +855,9 @@ cdef double distance_grad(double u0, double u1, double v0, double v1, int ax) no
     else:
         return shared_scalar * (u_scalar * u1 - v_scalar * v1)
 
-cdef double* exp_map_single(double* x, double* v) nogil:
+cdef void exp_map_single(double* x, double* v, double* res) nogil:
     cdef double x_norm_sq, metric, v_norm, v_scalar
-    cdef double* res = <double*> malloc(sizeof(double) * 2)
+    cdef double* y = <double*> malloc(sizeof(double) * 2)
 
     x_norm_sq = clamp(x[0] ** 2 + x[1] ** 2, 0, BOUNDARY)
 
@@ -867,25 +867,24 @@ cdef double* exp_map_single(double* x, double* v) nogil:
     v_scalar = tanh(clamp((metric * v_norm) / 2., -MAX_TANH, MAX_TANH))
 
     for j in range(2):
-        res[j] = (v[j] / v_norm) * v_scalar
+        y[j] = (v[j] / v_norm) * v_scalar
 
-    res = mobius_addition(x, res)
-
-    return res
+    mobius_addition(x, y, res)
+    free(y)
 
 cpdef void exp_map(double[:, :] x, double[:, :] v, double[:, :] out, int num_threads) nogil:
     cdef double* exp_map_res = <double*> malloc(sizeof(double) * 2)
+
     for i in range(x.shape[0]):
-        exp_map_res = exp_map_single(&x[i, 0], &v[i, 0])
+        exp_map_single(&x[i, 0], &v[i, 0], exp_map_res)
 
         for j in range(2):
             out[i, j] = exp_map_res[j]
 
     free(exp_map_res)
 
-cdef double* mobius_addition(double* x, double* y) nogil:
+cdef void mobius_addition(double* x, double* y, double* res) nogil:
     cdef double y_norm_sq, x_norm_sq, x_scalar, y_scalar, r_term, denominator
-    cdef double* res = <double*> malloc(sizeof(double) * 2)
 
     x_norm_sq = clamp(x[0] ** 2 + x[1] ** 2, 0, BOUNDARY)
     y_norm_sq = y[0] ** 2 + y[1] ** 2
@@ -900,31 +899,35 @@ cdef double* mobius_addition(double* x, double* y) nogil:
     for i in range(2):
         res[i] = (x_scalar * x[i] + y_scalar * y[i]) / denominator
 
-    return res
-cdef double* log_map_single(double* x, double* y) nogil:
+cdef void log_map_single(double* x, double* y, double* res) nogil:
     cdef double x_norm_sq, metric, y_scalar
-    cdef double* res = <double*> malloc(sizeof(double) * 2)
 
     x_norm_sq = clamp(x[0] ** 2 + x[1] ** 2, 0, BOUNDARY)
 
     metric = 2. / (1. - x_norm_sq)
 
+    cdef double* u = <double*> malloc(sizeof(double) * 2)
     for j in range(2):
-        res[j] = -x[j]
+        u[j] = -x[j]
 
-    res = mobius_addition(res, y)
+    cdef double* mobius_res = <double *> malloc(sizeof(double) * 2)
+    mobius_addition(u, y, mobius_res)
 
-    mob_add_norm = sqrt(res[0] ** 2 + res[1] ** 2)
+    free(u)
+
+    mob_add_norm = sqrt(mobius_res[0] ** 2 + mobius_res[1] ** 2)
     y_scalar = atanh(fmin(mob_add_norm, 1. - EPSILON))
 
     for j in range(2):
-        res[j] = (2. / metric) * y_scalar * (res[j] / mob_add_norm)
+        res[j] = (2. / metric) * y_scalar * (mobius_res[j] / mob_add_norm)
 
-    return res
+    free(mobius_res)
+
 cpdef void log_map(double[:, :] x, double[:, :] y, double[:, :] out, int num_threads) nogil:
     cdef double* log_map_res = <double*> malloc(sizeof(double) * 2)
+
     for i in range(x.shape[0]):
-        log_map_res = log_map_single(&x[i, 0], &y[i, 0])
+        log_map_single(&x[i, 0], &y[i, 0], log_map_res)
 
         for j in range(2):
             out[i, j] = log_map_res[j]
