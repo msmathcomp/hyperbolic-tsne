@@ -40,12 +40,10 @@ DATASETS_DIR = "../datasets"
 # Constants
 
 SEED = 42
-RUNS = 5
-SIZE_SAMPLES = 10  # How many sizes to consider in the interval
 
 PERP = 30
 # LR = 1  # Defined with heuristic (see below)
-KNN_METHOD = ["sklearn", "hnswlib"][0]
+KNN_METHOD = ["sklearn", "hnswlib"][1]
 VANILLA = False  # whether to use momentum or not
 EXAG = 12
 
@@ -65,7 +63,7 @@ datasets = [
     ]
 
 tsne_types = ["accelerated", "exact"]
-splitting_strategies = ["equal_length", "equal_area"]
+splitting_strategies = ["equal_length",]
 
 
 ###################
@@ -79,7 +77,7 @@ for dataset in datasets:
     dataX, dataY = load_data(dataset, data_home=DATASETS_DIR, to_return="X_labels", hd_params=hd_params, knn_method=KNN_METHOD)
     n_samples = dataX.shape[0]
 
-    sample_sizes = np.linspace(0, n_samples, num=SIZE_SAMPLES + 1)[1:].astype(int)
+    sample_sizes = np.array([n_samples, ]).astype(int)   # ONLY ONE FULL SIZE
 
     X_embedded = initialization(n_samples=n_samples,
                                 n_components=2,
@@ -88,7 +86,7 @@ for dataset in datasets:
                                 method="pca")
 
     for config_id, config in enumerate(product(sample_sizes, tsne_types, splitting_strategies)):        
-        for run_n in range(RUNS):
+        for run_n in [0, ]:  # ONLY ONE RUN
             
             sample_size, tsne_type, splitting_strategy = config
             

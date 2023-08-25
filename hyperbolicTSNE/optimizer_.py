@@ -387,8 +387,8 @@ class SequentialOptimizer(BaseOptimizer):
 
     @classmethod
     def sequence_poincare(cls, exaggeration_its=250, exaggeration=12, gradientDescent_its=750,
-                          n_iter_check=np.inf, threshold_cf=0., threshold_its=-1, threshold_check_size=-1,
-                          learning_rate_ex=0.1, learning_rate_main=0.1, momentum=0.8, vanilla=False, exact=True, calc_both=False, angle=0.5,
+                          n_iter_check=np.inf, threshold_cf=0., threshold_its=-1, threshold_check_size=-1, size_tol=None,
+                          learning_rate_ex=0.1, learning_rate_main=0.1, momentum_ex=0.5, momentum=0.8, vanilla=False, exact=True, calc_both=False, angle=0.5,
                           area_split=False, grad_fix=False, grad_scale_fix=False):
         # Start with an empty sequence
         cf_config_params = HyperbolicKL.exact_tsne() if exact else HyperbolicKL.bh_tsne()
@@ -403,12 +403,13 @@ class SequentialOptimizer(BaseOptimizer):
 
         # Add the blocks necessary for early exaggeration
         template["sequence"] = SequentialOptimizer.add_block_early_exaggeration(
-            template["sequence"], earlyExaggeration_its=exaggeration_its, momentum=0.5, learning_rate=learning_rate_ex,
+            template["sequence"], earlyExaggeration_its=exaggeration_its, momentum=momentum_ex, learning_rate=learning_rate_ex,
             exaggeration=exaggeration, n_iter_check=n_iter_check,
             threshold_cf=threshold_cf, threshold_its=threshold_its, threshold_check_size=threshold_check_size, grad_scale_fix=grad_scale_fix
         )
 
         template["sequence"][-2]["params"]["vanilla"] = vanilla
+        template["sequence"][-2]["params"]["size_tol"] = size_tol
 
         # Add the block for burn in
         # template["sequence"] = SequentialOptimizer.add_block_gradient_descent_with_rescale_and_gradient_mask(
@@ -425,6 +426,8 @@ class SequentialOptimizer(BaseOptimizer):
             threshold_cf=threshold_cf, threshold_its=threshold_its, threshold_check_size=threshold_check_size,
             learning_rate=learning_rate_main, momentum=momentum, vanilla=vanilla, grad_scale_fix=grad_scale_fix
         )
+
+        template["sequence"][-1]["params"]["size_tol"] = size_tol        
 
         return template
 
