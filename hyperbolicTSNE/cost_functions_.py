@@ -386,7 +386,7 @@ class HyperbolicKL(BaseCostFunction):
     def _obj_bh(self, Y, V, n_samples):
         return self._grad_bh(Y, V, n_samples)
 
-    def _grad_bh(self, Y, V, n_samples):
+    def _grad_bh(self, Y, V, n_samples, save_timings=True):
         Y = Y.astype(ctypes.c_double, copy=False)
         Y = Y.reshape(n_samples, self.n_components)
 
@@ -412,5 +412,8 @@ class HyperbolicKL(BaseCostFunction):
 
         grad = grad.ravel()
         grad *= 4
+
+        if save_timings:
+            self.results.append(timings)
 
         return error, grad
