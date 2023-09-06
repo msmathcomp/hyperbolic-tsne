@@ -7,7 +7,7 @@ from hyperbolicTSNE import load_data, Datasets, SequentialOptimizer, initializat
 
 data_home = "datasets"
 seed = 42
-dataset = Datasets.MYELOID
+dataset = Datasets.MNIST
 dataX, dataY, D, V = load_data(dataset, data_home=data_home, random_state=seed, to_return="X_labels_D_V",
                                hd_params={"perplexity": 30})
 
@@ -41,17 +41,8 @@ for theta in [x / 10 for x in range(0, 11, 1)]:
                                                        grad_fix=False,
                                                        grad_scale_fix=False,
                                                        n_iter_check=10,  # Needed for size check
+                                                       angle=theta,
                                                        size_tol=0.999)  # Needed for size check
-
-    # opt_params = SequentialOptimizer.sequence_poincare(gradientDescent_its=300,
-    #                                                    learning_rate_ex=1,
-    #                                                    learning_rate_main=1,
-    #                                                    vanilla=False,
-    #                                                    exact=False,
-    #                                                    grad_fix=True,
-    #                                                    grad_scale_fix=True,
-    #                                                    angle=theta,
-    #                                                    area_split=False)
 
     # Start: logging
     log_path = "../temp/poincare/"
