@@ -10,7 +10,9 @@ from hyperbolicTSNE.tsne_barnes_hut_hyperbolic import distance_py
 # from sklearn.neighbors._quad_tree import _QuadTree
 
 MACHINE_EPSILON = np.finfo(np.double).eps
-np.random.seed(42)
+# np.random.seed(42)
+# np.random.seed(10)
+np.random.seed(594507)
 
 
 matplotlib.rcParams['figure.dpi'] = 300
@@ -168,7 +170,8 @@ def plot_tree(sc_data):
     # plt.gca().set_aspect('equal')
 
     # plt.show()
-    plt.savefig("tree.pdf")
+    # plt.savefig("c_elegans_tree.pdf")
+    plt.savefig("c_elegans.png", dpi=500)
     print("done")
 
 
@@ -186,5 +189,5 @@ if __name__ == '__main__':
     #
     # plot_tree(scatter_data[0])
 
-    plot_tree(np.load("final_embedding.npy"))
+    plot_tree(np.load("c_elegans.npy"))
     # plot_tree(np.genfromtxt("c_bh.csv", delimiter=','))
