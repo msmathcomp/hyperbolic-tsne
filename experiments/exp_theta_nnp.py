@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 from hyperbolicTSNE import load_data, Datasets, SequentialOptimizer, initialization, HDEO
 # from hyperbolicTSNE.visualization import plot_poincare
 
-data_home = "datasets"
+data_home = "../datasets"
 seed = 42
 dataset = Datasets.MNIST
 dataX, dataY, D, V = load_data(dataset, data_home=data_home, random_state=seed, to_return="X_labels_D_V",
@@ -45,7 +45,7 @@ for theta in [x / 10 for x in range(0, 11, 1)]:
                                                        size_tol=0.999)  # Needed for size check
 
     # Start: logging
-    log_path = "../temp/poincare/"
+    log_path = "../results/exp_theta_nnp/"
     logging_dict = {
         "log_path": log_path
     }
@@ -61,15 +61,18 @@ for theta in [x / 10 for x in range(0, 11, 1)]:
     res_hdeo_so = hdeo_so.fit_transform((D, V))
     # res_hdeo_so = find_ith_embedding(logging_dict["log_path"], 500)
     # plot_poincare(res_hdeo_so, dataY).show()
+    
+    np.save(log_path.joinpath(f"final_embedding_theta_{theta}.npy"), res_hdeo_hyper)
 
     _, precision, recall, _ = hyperbolic_nearest_neighbor_preservation(dataX, res_hdeo_so,
-                                                                       k_start=1, k_max=10,
+                                                                       k_start=1, k_max=30,
                                                                        D_X=None,
                                                                        exact_nn=True,
                                                                        consider_order=False,
                                                                        strict=False,
                                                                        to_return="full")
-
+    np.save(log_path.joinpath(f"precisions_theta_{theta}.npy"), precisions)
+    np.save(log_path.joinpath(f"recalls_theta_{theta}.npy"), recalls)
 
 
     line, = ax.plot(precision, recall)
