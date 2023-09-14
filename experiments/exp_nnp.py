@@ -26,12 +26,12 @@ from hyperbolicTSNE.quality_evaluation_ import hyperbolic_nearest_neighbor_prese
 from hyperbolicTSNE import Datasets, load_data
 from hyperbolicTSNE.util import find_last_embedding
 
-BASE_DIR = Path("../results/exp_grid")
+BASE_DIR = Path("../results/exp_full_size_runs")
 DATASETS_DIR = "../datasets"
 
 NEIGHBORHOOD_SIZE = 100
 K_START = 1
-K_MAX = 10
+K_MAX = 30
 EXACT_NN = False
 CONSIDER_ORDER = False
 STRICT = False
@@ -47,6 +47,10 @@ for dataset_dir in BASE_DIR.glob("*"):
     if dataset_dir.is_dir():
         dataset_name = dataset_dir.stem
         dataX = load_data(Datasets[dataset_name], data_home=DATASETS_DIR, to_return="X", hd_params=hd_params)
+
+        fig, ax = plt.subplots()
+        ax.set_title(dataset_name)
+
         for size_dir in dataset_dir.glob("*"):
             if size_dir.is_dir():
                 for config_dir in size_dir.glob("*"):
@@ -86,10 +90,14 @@ for dataset_dir in BASE_DIR.glob("*"):
                                 np.save(run_dir.joinpath("recalls.npy"), recalls)
                                 np.save(run_dir.joinpath("true_positives.npy"), true_positives)
 
-                                # Save final embedding
-                                fig, ax = plt.subplots()
-                                ax.scatter(precisions, recalls)
-                                ax.set_xlabel("Precision")
-                                ax.set_ylabel("Recall")
-                                fig.savefig(run_dir.joinpath(f"prec-vs-rec.png"))
-                                plt.close(fig)
+                                # Add points to plot
+                                if config_dir.name == 'configuration_0':
+                                    ax.scatter(precisions, recalls, label="accelerated")
+                                else:
+                                    ax.scatter(precisions, recalls, label="exact")
+
+        ax.set_xlabel("Precision")
+        ax.set_ylabel("Recall")
+        ax.legend()
+        fig.savefig(dataset_dir.joinpath(f"{dataset_name}_prec-vs-rec.png"))
+        plt.close(fig)
