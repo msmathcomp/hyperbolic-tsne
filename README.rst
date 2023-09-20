@@ -75,3 +75,9 @@ We compare our method with theirs.
 `cd hyperbolic-tsne`
 `python setup.py build_ext --inplace`
 `pip install .`
+
+## TODOs
+
+- [ ] Installation guide
+- [ ] Break experiment files into files that correspond to figures
+- [ ] Clean repo removing everything that does not correspond to the goal
