@@ -1,12 +1,9 @@
 import os
 import traceback
 
-import sys
-sys.path.insert(0, "..")
-
 from hyperbolicTSNE.util import find_last_embedding, find_ith_embedding
 from hyperbolicTSNE.visualization import plot_poincare, animate, plot_poincare_zoomed, save_poincare_teaser
-from hyperbolicTSNE import load_data, Datasets, SequentialOptimizer, initialization, HDEO
+from hyperbolicTSNE import load_data, Datasets, SequentialOptimizer, initialization, HyperbolicTSNE
 
 data_home = "../datasets"
 
@@ -73,7 +70,7 @@ if os.path.exists(log_path) and not only_animate:
     shutil.rmtree(log_path)
 # End: logging
 
-hdeo_hyper = HDEO(init=X_embedded, n_components=2, metric="precomputed", verbose=True, opt_method=SequentialOptimizer, opt_params=opt_params)
+hdeo_hyper = HyperbolicTSNE(init=X_embedded, n_components=2, metric="precomputed", verbose=True, opt_method=SequentialOptimizer, opt_params=opt_params)
 
 if not only_animate:
     try:

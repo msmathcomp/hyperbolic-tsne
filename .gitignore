@@ -30,3 +30,6 @@ temp
 *.egg-info
 *.cpp
 *.pyd
+*.so
+
+.vscode
