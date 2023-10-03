@@ -1,0 +1,1 @@
+Please note that `empty_sequence` uses the KL divergence with Barnes-Hut approximation (angle=0.5) by default.

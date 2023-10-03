@@ -1,5 +1,5 @@
 from .hd_mat_ import hd_matrix
-from .hdeo_ import HDEO
+from .hyperbolic_tsne_ import HyperbolicTSNE
 from .cost_functions_ import HyperbolicKL
 from .optimizer_ import SequentialOptimizer
 from .initializations_ import initialization

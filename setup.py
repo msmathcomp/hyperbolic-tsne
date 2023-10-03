@@ -67,9 +67,10 @@ def has_c_library(library, extension=".c"):
     bool
         Whether or not the library is available.
 
-    """
+    """    
     with tempfile.TemporaryDirectory(dir=".") as directory:
         name = join(directory, "%s%s" % (library, extension))
+        print(name)
         with open(name, "w") as f:
             f.write("#include <%s.h>\n" % library)
             f.write("int main() {}\n")

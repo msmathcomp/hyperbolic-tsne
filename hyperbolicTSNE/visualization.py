@@ -175,10 +175,7 @@ legend_bbox_dict[Datasets.MYELOID] = (1.1, 0.5)
 legend_bbox_dict[Datasets.C_ELEGANS] = (1.3, 0.5)
 
 
-data_home = Path("../datasets/")
-
-
-def myeloid_labels():
+def myeloid_labels(data_home = Path("../datasets/")):
     full_path = Path.joinpath(data_home, "myeloid-progenitors")
 
     X = np.loadtxt(str(Path.joinpath(full_path, "MyeloidProgenitors.csv")), delimiter=",", skiprows=1,
@@ -188,7 +185,7 @@ def myeloid_labels():
                       dtype=str)
 
 
-def c_elegans_labels():
+def c_elegans_labels(data_home = Path("../datasets/")):
 
     full_path = Path.joinpath(data_home, "c_elegans")
 
@@ -198,13 +195,13 @@ def c_elegans_labels():
     return np.array(ad_obj.obs.cell_type)
 
 
-def planaria_labels():
+def planaria_labels(data_home = Path("../datasets/")):
     full_path = Path.joinpath(data_home, "planaria")
 
     return np.loadtxt(str(Path.joinpath(full_path, "R_annotation.txt")), delimiter=",", dtype=str)
 
 
-def mnist_labels():
+def mnist_labels(data_home = Path("../datasets/")):
     full_path = Path.joinpath(data_home, 'mnist')
 
     labels_path_train = Path.joinpath(full_path, 'train-labels-idx1-ubyte.gz')
@@ -226,14 +223,14 @@ def mnist_labels():
     return list(map(str, labels))
 
 
-labels_dict = defaultdict(lambda: None)
-labels_dict[Datasets.MNIST] = mnist_labels()
-labels_dict[Datasets.PLANARIA] = planaria_labels()
-labels_dict[Datasets.C_ELEGANS] = c_elegans_labels()
-labels_dict[Datasets.MYELOID] = myeloid_labels()
+# labels_dict = defaultdict(lambda: None)
+# labels_dict[Datasets.MNIST] = mnist_labels()
+# labels_dict[Datasets.PLANARIA] = planaria_labels()
+# labels_dict[Datasets.C_ELEGANS] = c_elegans_labels()
+# labels_dict[Datasets.MYELOID] = myeloid_labels()
 
 
-def save_poincare_teaser(points, file_name, str_labels=None, dataset=None):
+def save_poincare_teaser(points, file_name, str_labels=None, dataset=None, save_fig_kwargs=dict()):
 
     df = pd.DataFrame({"x": points[:, 0], "y": points[:, 1]})
 
@@ -267,7 +264,7 @@ def save_poincare_teaser(points, file_name, str_labels=None, dataset=None):
 
     plt.tight_layout()
 
-    plt.savefig(file_name, bbox_extra_artists=(lgd,), bbox_inches='tight')
+    plt.savefig(file_name, bbox_extra_artists=(lgd,), bbox_inches='tight', **save_fig_kwargs)
 
 
 def plot_poincare_zoomed(points, labels=None):

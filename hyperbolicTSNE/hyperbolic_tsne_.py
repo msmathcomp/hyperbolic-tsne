@@ -1,13 +1,10 @@
 
 
 import numpy as np
-from time import time
-import inspect
-from scipy import linalg
 
 from . import hd_mat_ as hd_mat
 from .initializations_ import initialization
-from .optimizer_ import BaseOptimizer, SequentialOptimizer
+from .optimizer_ import SequentialOptimizer
 
 from sklearn.base import BaseEstimator
 
@@ -16,7 +13,7 @@ from sklearn.utils.validation import _deprecate_positional_args
 from sklearn.utils.validation import check_non_negative
 
 
-class HDEO(BaseEstimator):
+class HyperbolicTSNE(BaseEstimator):
     """High-dimensional embedding optimization
     This is meant to be a general framework for embedding high-dimensional
     data. For now it only supports TSNE, but the goal is to support other
@@ -100,7 +97,7 @@ class HDEO(BaseEstimator):
     def __init__(self, n_components=2, *, init="random",
                  metric="euclidean", knn_neighbors=100,
                  hd_method="vdm2008", hd_params=None,
-                 opt_method=SequentialOptimizer, opt_params=SequentialOptimizer.sequence_vdm(),
+                 opt_method=SequentialOptimizer, opt_params=SequentialOptimizer.sequence_poincare(),
                  verbose=0, random_state=None, n_jobs=None):
         self.n_components = n_components
         self.init = init
