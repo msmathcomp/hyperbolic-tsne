@@ -2,15 +2,7 @@
 venv
 
 # non-stylistic pycharm configs
-.idea/misc.xml
-.idea/modules.xml
-.idea/umap.iml
-.idea/umap-hdeo.iml
-.idea/hdeo.iml
-.idea/vcs.xml
-.idea/workspace.xml
-.idea/dictionaries
-.idea/other.xml
+.idea
 
 # Mac Finder layout
 .DS_Store
