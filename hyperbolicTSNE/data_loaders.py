@@ -38,17 +38,13 @@ class Datasets(Enum):
     WORDNET = auto()  # DONE
 
 
-def load_mnists(version, data_home=None, return_X_y=True, kind='all'):
+def load_mnist(data_home=None, return_X_y=True, kind='all'):
     """
     Loads different versions of the MNIST dataset. The function was taken from
     https://github.com/zalandoresearch/fashion-mnist/blob/master/utils/mnist_reader.py
 
     Parameters
     __________
-    version : Datasets, optional
-        Version of the MNIST dataset to load:
-        If Datasets.MNIST then regular MNIST is loaded.
-        If Datasets.F_MNIST then the fashion MNIST is loaded.
     data_home : str, optional
         Locations of the folder where the datasets are stored.
     return_X_y: bool, optional
@@ -62,14 +58,7 @@ def load_mnists(version, data_home=None, return_X_y=True, kind='all'):
     if data_home is None:
         data_home = os.path.join(os.path.dirname(__file__), 'datasets')
 
-    if version == Datasets.MNIST:
-        name = 'mnist'
-    elif version == Datasets.F_MNIST:
-        name = 'f-mnist'
-    else:
-        raise Exception('Given name does not match "mnist" or "f-mnist".')
-
-    full_path = os.path.join(data_home, name)
+    full_path = os.path.join(data_home, 'mnist')
 
     labels_path_train = os.path.join(full_path, 'train-labels-idx1-ubyte.gz')
 
@@ -205,26 +194,6 @@ def load_planaria(data_home):
     return X, labels
 
 
-def load_paul(data_home):
-    # Starting to use path instead of os TODO: move these to global imports
-    from pathlib import Path
-
-    # Use default location
-    if data_home is None:
-        data_home = Path.joinpath(Path(__file__).parent, "datasets")
-    else:
-        data_home = Path(str(data_home))  # quick fix to deal with incoming os.paths
-
-    full_path = Path.joinpath(data_home, "paul")
-
-    X = np.loadtxt(str(Path.joinpath(full_path, "Paul.csv")), delimiter=",", skiprows=1, usecols=np.arange(11))
-
-    labels_str = np.loadtxt(str(Path.joinpath(full_path, "Paul.csv")), delimiter=",", skiprows=1, usecols=11, dtype=str)
-    _, labels = np.unique(labels_str, return_inverse=True)
-
-    return X, labels
-
-
 def load_wordnet(data_home):
     # Starting to use path instead of os TODO: move these to global imports
     from pathlib import Path
@@ -300,15 +269,13 @@ def _load_dataset(dataset, data_home=None, verbose=False, **kwargs):
         print("[Data Loader] Preparing to load the dataset")
     start = time.time()
     if dataset == Datasets.MNIST:
-        X, labels = load_mnists(Datasets.MNIST, data_home, **kwargs)
+        X, labels = load_mnist(data_home, **kwargs)
     if dataset == Datasets.MYELOID:
         X, labels = load_myeloid(data_home)
     if dataset == Datasets.MYELOID8000:
         X, labels = load_myeloid8000(data_home)
     if dataset == Datasets.PLANARIA:
         X, labels = load_planaria(data_home)
-    if dataset == Datasets.PAUL:
-        X, labels = load_paul(data_home)
     if dataset == Datasets.C_ELEGANS:
         X, labels = load_c_elegans(data_home)
     if dataset == Datasets.LUKK:
