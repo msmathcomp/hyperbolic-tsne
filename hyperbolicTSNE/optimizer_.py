@@ -195,72 +195,6 @@ class SequentialOptimizer:
         """
         return Y, V * exaggeration
 
-    @staticmethod
-    def scale_to_optimal_size(Y, V, cost_function, binary_search_depth=10):
-        """
-        TODO Method Docu
-        """
-        # Compute the error of the current embedding
-        error = cost_function.obj(Y, V=V)
-
-        # Find an initial minimum, encode steps as (exponent, error)
-        # TODO This assumes that scaling up will improve the error, include scaling down.
-        pre_previous = (1., error)
-        previous = (1., error)
-        current = (1., error)
-        exp = 0
-        # TODO Can we make a more reasonable assumption here on the upper bound of the exponent than just arbitrary 15?
-        while exp < 15 and current[1] <= previous[1]:
-            # Shift computed errors and go to next exponent
-            pre_previous = previous
-            previous = current
-            exp += 1
-            # Blow up embedding by current exponent, compute error, and save both exp and error
-            Y *= 10 ** exp
-            line_search_error = cost_function.obj(Y, V=V)
-            Y /= 10 ** exp
-            current = (exp, line_search_error)
-
-        if exp >= 16:  # No local minimum was found
-            raise Exception("Could not find a suitable scaling factor in the line search.")
-        else:  # Program did find a local minimum to start from
-            left = pre_previous
-            middle = previous
-            right = current
-            depth = 0
-            while depth < binary_search_depth:
-                # Increase depth and compute the errors left and right to the middle
-                depth += 1
-                exp = (left[0] + middle[0]) / 2
-                Y *= 10 ** exp
-                line_search_error = cost_function.obj(Y, V=V)
-                Y /= 10 ** exp
-                left_middle = (exp, line_search_error)
-
-                exp = (middle[0] + right[0]) / 2
-                Y *= 10 ** exp
-                line_search_error = cost_function.obj(Y, V=V)
-                Y /= 10 ** exp
-                middle_right = (exp, line_search_error)
-
-                # Shift the binary search left or right, depending on the erros found
-                if left_middle[1] < middle_right[1]:
-                    right = middle
-                    middle = left_middle
-                else:
-                    left = middle
-                    middle = middle_right
-
-            # Store the minimum found via line search
-            if left[1] <= middle[1] and left[1] <= right[1]:
-                Y *= 10 ** left[0]
-            elif middle[1] <= left[1] and middle[1] <= right[1]:
-                Y *= 10 ** middle[0]
-            else:
-                Y *= 10 ** right[0]
-
-        return Y, V
-
     # Sequence param presets and blocks
     @classmethod
     def empty_sequence(cls, cf=HyperbolicKL, cf_config_params=None, cf_params=None):
@@ -459,14 +393,6 @@ class SequentialOptimizer:
                         "grad_scale_fix": grad_scale_fix,
                     }
             })
-        return sequence
-
-    @classmethod
-    def add_block_scale_to_optimal_size(cls, sequence, binary_search_depth=10):
-        sequence.append({
-                    "type": "processor", "function": SequentialOptimizer.scale_to_optimal_size,
-                    "params": {"binary_search_depth": binary_search_depth}
-                })
         return sequence
 
     @classmethod
