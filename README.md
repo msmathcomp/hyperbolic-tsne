@@ -10,9 +10,11 @@ This repository contains the code of the paper ... TODO
 4. Install dependencies with pip: `pip install -r requirements.txt`
 5. Build Cython extensions: `python setup.py build_ext --inplace`
 6. Install hyperbolic-tsne package: `pip install .`
-7. Remove unnecessary files: `rm -r hyperbolic_tsne.egg-info build` and `rm hyperbolicTSNE/tsne_barnes_hut_hyperbolic.c* hyperbolicTSNE/tsne_barnes_hut.c* hyperbolicTSNE/tsne_utils.c*`
-8. To test installation run `python -c "from hyperbolicTSNE import HyperbolicTSNE"`. No errors should be raised.
+7. To test installation run `python -c "from hyperbolicTSNE import HyperbolicTSNE"`. No errors should be raised.
 
+Note: on macOS, the build process of the Cython extensions might yield an error if it cannot find OpenMP.
+This error can be ignored and the package will still be correctly installed and able to run. 
+The main consequence of this error is that the optimization iterations are going to run slower.
 
 ## Data
 

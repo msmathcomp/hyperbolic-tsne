@@ -167,20 +167,17 @@ class CythonBuildExt(build_ext):
 
 
 extensions = [
-    Extension("hyperbolicTSNE.tsne_utils",
-              sources=["hyperbolicTSNE/tsne_utils.pyx"],
+    Extension("hyperbolicTSNE.hyperbolic_barnes_hut.tsne_utils",
+              sources=["hyperbolicTSNE/hyperbolic_barnes_hut/tsne_utils.pyx"],
               language="c++"),
-    Extension("hyperbolicTSNE.tsne_barnes_hut",
-              sources=["hyperbolicTSNE/tsne_barnes_hut.pyx"],
-              language="c++"),
-    Extension("hyperbolicTSNE.tsne_barnes_hut_hyperbolic",
-              sources=["hyperbolicTSNE/tsne_barnes_hut_hyperbolic.pyx"],
+    Extension("hyperbolicTSNE.hyperbolic_barnes_hut.tsne",
+              sources=["hyperbolicTSNE/hyperbolic_barnes_hut/tsne.pyx"],
               language="c++"),
 ]
 
 
 def readme():
-    with open("README.rst", encoding="utf-8") as f:
+    with open("README.md", encoding="utf-8") as f:
         return f.read()
 
 
