@@ -136,7 +136,7 @@ for dataset in datasets:  # Iterate over the data sets
                     "splitting_strategy": splitting_strategy
                 }
 
-                print(f"Starting configuration {config_id} with dataset {dataset.name}: {params}")
+                print(f"[experiment_grid] - Starting configuration {config_id} with dataset {dataset.name}: {params}")
 
                 opt_params["logging_dict"] = {
                     "log_path": str(run_dir.joinpath("embeddings"))
