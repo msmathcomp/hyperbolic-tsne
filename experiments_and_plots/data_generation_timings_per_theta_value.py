@@ -27,7 +27,7 @@ from hyperbolicTSNE.visualization import plot_poincare
 # GENERAL EXPERIMENT PARAMETERS #
 #################################
 
-BASE_DIR = "../results/samples_per_data_set"  # dir where results will be saved
+BASE_DIR = "../results/timings_per_theta"  # dir where results will be saved
 DATASETS_DIR = "../datasets"  # directory to read the data from
 
 # Constants
