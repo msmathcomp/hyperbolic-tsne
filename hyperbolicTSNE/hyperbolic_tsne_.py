@@ -131,23 +131,6 @@ class HyperbolicTSNE(BaseEstimator):
         -------
         X_new: array, shape (n_samples, n_components)
             Embedding of the training data in low-dimensional space.
-
-        Raises
-        ------
-        Exception
-            _description_
-        Exception
-            _description_
-        Exception
-            _description_
-        ValueError
-            _description_
-        ValueError
-            _description_
-        ValueError
-            _description_
-        ValueError
-            _description_
         """
 
         random_state = check_random_state(self.random_state)
