@@ -23,15 +23,15 @@ import numpy as np
 from scipy.sparse import issparse, save_npz
 from matplotlib import pyplot as plt
 
-from hyperbolicTSNE import Datasets, load_data, initialization, hd_matrix, SequentialOptimizer, HDEO
+from hyperbolicTSNE import Datasets, load_data, initialization, hd_matrix, SequentialOptimizer, HyperbolicTSNE
 from hyperbolicTSNE.util import find_last_embedding
-from hyperbolicTSNE.visualization import plot_poincare, plot_poincare_zoomed
+from hyperbolicTSNE.visualization import plot_poincare
 
 #################################
 # GENERAL EXPERIMENT PARAMETERS #
 #################################
 
-BASE_DIR = "../results/exp_grid"  # directory where results will be saved
+BASE_DIR = "../results/full_size_one_run"  # directory where results will be saved
 DATASETS_DIR = "../datasets"  # directory to read the data from
 
 # Constants
@@ -154,7 +154,7 @@ for dataset in datasets:  # Iterate over the data sets
                 else:
                     np.save(run_dir.joinpath("P.npy"), V)
 
-                hdeo_hyper = HDEO(  # Initialize an embedding object
+                hdeo_hyper = HyperbolicTSNE(  # Initialize an embedding object
                     init=X_embedded_sample,
                     n_components=X_embedded_sample.shape[1],
                     metric="precomputed",

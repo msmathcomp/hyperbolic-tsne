@@ -48,6 +48,8 @@ linewidth = 3.0
 # PLOTTING THE DATA #
 #####################
 
+# Work with the "equal length" data, as this splitting technique proved to be more efficient, filtering by
+# "equal_length" contains both accelerated and exact data.
 plot_times_df = timings_df.copy()
 plot_times_df = plot_times_df[(plot_times_df.splitting_strategy == "equal_length")]
 
