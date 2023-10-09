@@ -6,7 +6,7 @@ from scipy.sparse import csr_matrix
 
 import hnswlib
 
-from . import tsne_utils
+from .hyperbolic_barnes_hut import tsne_utils
 
 MACHINE_EPSILON = np.finfo(np.double).eps
 

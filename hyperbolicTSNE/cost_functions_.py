@@ -18,7 +18,7 @@ import numpy as np
 from scipy.spatial.distance import pdist
 from scipy.spatial.distance import squareform
 
-from . import tsne_barnes_hut, tsne_barnes_hut_hyperbolic
+from .hyperbolic_barnes_hut import tsne
 from sklearn.utils._openmp_helpers import _openmp_effective_n_threads
 
 MACHINE_EPSILON = np.finfo(np.double).eps
@@ -149,7 +149,7 @@ class HyperbolicKL:
 
         grad = np.zeros(Y.shape, dtype=ctypes.c_double)
         timings = np.zeros(4, dtype=ctypes.c_float)
-        error = tsne_barnes_hut_hyperbolic.gradient(
+        error = tsne.gradient(
             timings,
             val_V, Y, neighbors, indptr, grad,
             0.5,
@@ -183,7 +183,7 @@ class HyperbolicKL:
 
         grad = np.zeros(Y.shape, dtype=ctypes.c_double)
         timings = np.zeros(4, dtype=ctypes.c_float)
-        error = tsne_barnes_hut_hyperbolic.gradient(
+        error = tsne.gradient(
             timings,
             val_V, Y, neighbors, indptr, grad,
             self.params["params"]["angle"],

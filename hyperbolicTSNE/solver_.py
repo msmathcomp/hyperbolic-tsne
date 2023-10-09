@@ -15,7 +15,7 @@ from scipy import linalg
 from tqdm import tqdm
 
 from .cost_functions_ import HyperbolicKL
-from . import tsne_barnes_hut_hyperbolic
+from .hyperbolic_barnes_hut import tsne
 
 MACHINE_EPSILON = np.finfo(np.double).eps
 
@@ -32,7 +32,8 @@ def log_iteration(logging_dict, logging_key, it, y, n_samples, n_components,
     y = y.copy().reshape(n_samples, n_components)
     y_bbox = list(np.concatenate((y.min(axis=0), y.max(axis=0))))
     y_bbox = (
-        y_bbox[0], y_bbox[2], y_bbox[1], y_bbox[3], np.sqrt((y_bbox[0] - y_bbox[2]) ** 2 + (y_bbox[1] - y_bbox[3]) ** 2)
+        y_bbox[0], y_bbox[2], y_bbox[1], y_bbox[3], np.sqrt(
+            (y_bbox[0] - y_bbox[2]) ** 2 + (y_bbox[1] - y_bbox[3]) ** 2)
     )
 
     logging_dict[logging_key]["its"].append(it)
@@ -42,7 +43,8 @@ def log_iteration(logging_dict, logging_key, it, y, n_samples, n_components,
     if log_arrays and log_arrays_ids is not None and it in log_arrays_ids:
         # Store embedding and gradient to be returned in memory
         logging_dict[logging_key]["embeddings"].append(y)
-        logging_dict[logging_key]["gradients"].append(grad.copy().reshape(n_samples, n_components))
+        logging_dict[logging_key]["gradients"].append(
+            grad.copy().reshape(n_samples, n_components))
 
     # Store the embedding as CSV file at the given location
     log_path = logging_dict.get("log_path", None)
@@ -175,7 +177,8 @@ def gradient_descent(
         else:
             logging_key = "_" + logging_key
         logging_key = "solver_gradient_descent" + logging_key
-        logging_dict[logging_key] = {"grads_norms": [], "cfs": [], "cfs_rescaled": [], "its": [], "times": [], "y_bbox": [], "hyperbolic": []}
+        logging_dict[logging_key] = {"grads_norms": [], "cfs": [], "cfs_rescaled": [
+        ], "its": [], "times": [], "y_bbox": [], "hyperbolic": []}
         log_arrays = logging_dict["log_arrays"]
         if log_arrays:
             log_arrays_ids = logging_dict["log_arrays_ids"]
@@ -183,7 +186,8 @@ def gradient_descent(
                 log_arrays_ids = list(range(start_it, total_its))
             else:
                 if type(log_arrays_ids) is list:  # TODO: missing more robust checks
-                    log_arrays_ids = [i for i in log_arrays_ids if start_it <= i < total_its]
+                    log_arrays_ids = [
+                        i for i in log_arrays_ids if start_it <= i < total_its]
             logging_dict[logging_key]["log_arrays_ids"] = log_arrays_ids
             logging_dict[logging_key]["embeddings"] = []
             logging_dict[logging_key]["gradients"] = []
@@ -208,7 +212,8 @@ def gradient_descent(
             if isinstance(cf, HyperbolicKL):
                 # New Fix
                 if grad_scale_fix:
-                    grad = ((1. - np.linalg.norm(y.reshape(n_samples, 2), axis=1) ** 2) ** 2)[:, np.newaxis] * grad.reshape(n_samples, 2) / 4
+                    grad = ((1. - np.linalg.norm(y.reshape(n_samples, 2), axis=1)
+                            ** 2) ** 2)[:, np.newaxis] * grad.reshape(n_samples, 2) / 4
                     grad = grad.flatten()
 
                 grad_norm = linalg.norm(grad)
@@ -224,12 +229,12 @@ def gradient_descent(
                 # y = Model.exp_map(y, -learning_rate * grad * gradient_mask, n_samples)
 
                 res = np.empty((n_samples, 2), dtype=ctypes.c_double)
-                tsne_barnes_hut_hyperbolic.exp_map(y.reshape(n_samples, 2).astype(ctypes.c_double),
-                                                   (-learning_rate * grad * gradient_mask)
-                                                   .reshape(n_samples, 2)
-                                                   .astype(ctypes.c_double),
-                                                   res,
-                                                   cf.params["params"]["num_threads"])
+                tsne.exp_map(y.reshape(n_samples, 2).astype(ctypes.c_double),
+                             (-learning_rate * grad * gradient_mask)
+                             .reshape(n_samples, 2)
+                             .astype(ctypes.c_double),
+                             res,
+                             cf.params["params"]["num_threads"])
                 y = res.ravel()
             else:
                 inc = update * grad < 0.0
@@ -241,26 +246,26 @@ def gradient_descent(
                 update = momentum * update - learning_rate * grad
                 # y = Model.exp_map(y, update * gradient_mask, n_samples)
                 res_exp = np.empty((n_samples, 2), dtype=ctypes.c_double)
-                tsne_barnes_hut_hyperbolic.exp_map(y.reshape(n_samples, 2).astype(ctypes.c_double),
-                                                   (update * gradient_mask)
-                                                   .reshape(n_samples, 2)
-                                                   .astype(ctypes.c_double),
-                                                   res_exp,
-                                                   cf.params["params"]["num_threads"])
+                tsne.exp_map(y.reshape(n_samples, 2).astype(ctypes.c_double),
+                             (update * gradient_mask)
+                             .reshape(n_samples, 2)
+                             .astype(ctypes.c_double),
+                             res_exp,
+                             cf.params["params"]["num_threads"])
 
                 res_log = np.empty((n_samples, 2), dtype=ctypes.c_double)
-                tsne_barnes_hut_hyperbolic.log_map(res_exp,
-                                                   y.reshape(n_samples, 2).astype(ctypes.c_double),
-                                                   res_log,
-                                                   cf.params["params"]["num_threads"])
+                tsne.log_map(res_exp,
+                             y.reshape(n_samples, 2).astype(ctypes.c_double),
+                             res_log,
+                             cf.params["params"]["num_threads"])
                 y = res_exp.ravel()
 
                 update = res_log.ravel() * -1
 
             res_constrain = np.empty((n_samples, 2), dtype=ctypes.c_double)
-            tsne_barnes_hut_hyperbolic.constrain(y.reshape(n_samples, 2).astype(ctypes.c_double),
-                                                 res_constrain,
-                                                 cf.params["params"]["num_threads"])
+            tsne.constrain(y.reshape(n_samples, 2).astype(ctypes.c_double),
+                           res_constrain,
+                           cf.params["params"]["num_threads"])
             y = res_constrain.ravel()
 
         elif vanilla:
@@ -275,11 +280,13 @@ def gradient_descent(
             update = momentum * update - learning_rate * grad
             y += update * gradient_mask
 
-        pbar.set_description(f"Gradient Descent error: {error:.5f} grad_norm: {grad_norm:.5e}")
+        pbar.set_description(
+            f"Gradient Descent error: {error:.5f} grad_norm: {grad_norm:.5e}")
 
         # If a rescale value has been specified, rescale the embedding now to have the bounding box fit the given value.
         if rescale is not None and i % n_iter_rescale == 0:
-            y = (y * gradient_mask_inverse) + ((y * gradient_mask) / (np.sqrt((np.max(y[0::2]) - np.min(y[0::2])) ** 2 + (np.max(y[1::2]) - np.min(y[1::2])) ** 2) / rescale))
+            y = (y * gradient_mask_inverse) + ((y * gradient_mask) / (np.sqrt((np.max(
+                y[0::2]) - np.min(y[0::2])) ** 2 + (np.max(y[1::2]) - np.min(y[1::2])) ** 2) / rescale))
 
         # Start:logging
         if logging:
@@ -304,7 +311,8 @@ def gradient_descent(
             # If a size for evaluation was given ...
             if not threshold_check_size_found and threshold_check_size > 0.:
                 # ... compute the current size and ...
-                current_embedding_size = np.sqrt((np.max(y[0::2]) - np.min(y[0::2])) ** 2 + (np.max(y[1::2]) - np.min(y[1::2])) ** 2)
+                current_embedding_size = np.sqrt(
+                    (np.max(y[0::2]) - np.min(y[0::2])) ** 2 + (np.max(y[1::2]) - np.min(y[1::2])) ** 2)
                 # ... if the curret size is smaller than the evaluation size, ...
                 if current_embedding_size < threshold_check_size:
                     # ... scale the embedding to the given size and compute/store the corresponding error.
@@ -312,13 +320,15 @@ def gradient_descent(
                     y_check_size /= current_embedding_size
                     y_check_size *= threshold_check_size
                     error_rescaled = cf.obj(y_check_size, **cf_params)
-                    logging_dict[logging_key]["cfs_rescaled"].append(error_rescaled)
+                    logging_dict[logging_key]["cfs_rescaled"].append(
+                        error_rescaled)
                     # If the error is smaller than the given threshold, ...
                     if error_rescaled < threshold_cf:
                         # ... store the current iteration and stop checking for a rescaled value.
                         if logging:
                             logging_dict[logging_key]["threshold_check_size_rescaled_its"] = i - start_it
-                            logging_dict[logging_key]["threshold_check_size_rescaled_embedding"] = y_check_size.reshape(n_samples, n_components)
+                            logging_dict[logging_key]["threshold_check_size_rescaled_embedding"] = y_check_size.reshape(
+                                n_samples, n_components)
                             logging_dict[logging_key]["threshold_check_size_rescaled_cf"] = error_rescaled
                         threshold_check_size_found = True
 
@@ -329,17 +339,20 @@ def gradient_descent(
                     # Store the current iteration number, embedding, and error
                     if logging:
                         logging_dict[logging_key]["threshold_its_its"] = i - start_it
-                        logging_dict[logging_key]["threshold_its_embedding"] = y.copy().reshape(n_samples, n_components)
+                        logging_dict[logging_key]["threshold_its_embedding"] = y.copy().reshape(
+                            n_samples, n_components)
                         logging_dict[logging_key]["threshold_its_cf"] = error
                     # If a size was given, also store the current embedding scaled to the respective size
                     if threshold_check_size > 0. and logging:
-                        current_embedding_size = np.sqrt((np.max(y[0::2]) - np.min(y[0::2])) ** 2 + (np.max(y[1::2]) - np.min(y[1::2])) ** 2)
+                        current_embedding_size = np.sqrt(
+                            (np.max(y[0::2]) - np.min(y[0::2])) ** 2 + (np.max(y[1::2]) - np.min(y[1::2])) ** 2)
                         y_its = y.copy()
                         y_its /= current_embedding_size
                         y_its *= threshold_check_size
                         error_rescaled = cf.obj(y_its, **cf_params)
                         logging_dict[logging_key]["threshold_its_rescaled_its"] = i - start_it
-                        logging_dict[logging_key]["threshold_its_rescaled_embedding"] = y_its.reshape(n_samples, n_components)
+                        logging_dict[logging_key]["threshold_its_rescaled_embedding"] = y_its.reshape(
+                            n_samples, n_components)
                         logging_dict[logging_key]["threshold_its_rescaled_cf"] = error_rescaled
                     threshold_its_found = True
 
@@ -348,17 +361,20 @@ def gradient_descent(
                 # Store the current iteration number, embedding, and error
                 if logging:
                     logging_dict[logging_key]["threshold_cf_its"] = i - start_it
-                    logging_dict[logging_key]["threshold_cf_embedding"] = y.copy().reshape(n_samples, n_components)
+                    logging_dict[logging_key]["threshold_cf_embedding"] = y.copy().reshape(
+                        n_samples, n_components)
                     logging_dict[logging_key]["threshold_cf_cf"] = error
                 # If a size was given, also store the current embedding scaled to the respective size
                 if threshold_check_size > 0. and logging:
-                    current_embedding_size = np.sqrt((np.max(y[0::2]) - np.min(y[0::2])) ** 2 + (np.max(y[1::2]) - np.min(y[1::2])) ** 2)
+                    current_embedding_size = np.sqrt(
+                        (np.max(y[0::2]) - np.min(y[0::2])) ** 2 + (np.max(y[1::2]) - np.min(y[1::2])) ** 2)
                     y_cf = y.copy()
                     y_cf /= current_embedding_size
                     y_cf *= threshold_check_size
                     error_rescaled = cf.obj(y_cf, **cf_params)
                     logging_dict[logging_key]["threshold_cf_rescaled_its"] = i - start_it
-                    logging_dict[logging_key]["threshold_cf_rescaled_embedding"] = y_cf.reshape(n_samples, n_components)
+                    logging_dict[logging_key]["threshold_cf_rescaled_embedding"] = y_cf.reshape(
+                        n_samples, n_components)
                     logging_dict[logging_key]["threshold_cf_rescaled_cf"] = error_rescaled
                 threshold_cf_found = True
 
@@ -366,9 +382,15 @@ def gradient_descent(
             if verbose >= 1 and i % 1 == 0:
                 print(
                     "Running iteration " + str(i) + " with "
-                    + "Treshold Size: " + str(threshold_check_size) + " (Found: " + str(threshold_check_size_found) + "), "
-                    + "Treshold Its: " + str(threshold_its) + " (Found: " + str(threshold_its_found) + "), "
-                    + "Threshold Cf: " + str(threshold_cf) + " (Found: " + str(threshold_cf_found) + ")."
+                    + "Treshold Size: " +
+                    str(threshold_check_size) + " (Found: " +
+                    str(threshold_check_size_found) + "), "
+                    + "Treshold Its: " +
+                    str(threshold_its) + " (Found: " +
+                    str(threshold_its_found) + "), "
+                    + "Threshold Cf: " +
+                    str(threshold_cf) + " (Found: " +
+                    str(threshold_cf_found) + ")."
                 )
             if (threshold_check_size <= 0. or threshold_check_size_found) and (threshold_its <= 0 or threshold_its_found) and (threshold_cf <= 0. or threshold_cf_found):
                 return y.reshape(n_samples, n_components), error, i - start_it
@@ -407,11 +429,13 @@ def gradient_descent(
                           % (i + 1, grad_norm))
                 print("3")
                 break
-            
-            emb_point_dists = np.linalg.norm(y.reshape((n_samples, -1)), axis=1).max() 
+
+            emb_point_dists = np.linalg.norm(
+                y.reshape((n_samples, -1)), axis=1).max()
             if size_tol is not None and emb_point_dists > size_tol:
                 if verbose >= 2:
-                    print("[t-SNE] Iteration %d: max size %f. Finished." % (i + 1, emb_point_dists))
+                    print("[t-SNE] Iteration %d: max size %f. Finished." %
+                          (i + 1, emb_point_dists))
                 print("4")
                 break
     # FIXME Is this logging necessary as log iteration is called above already for all iterations?!
@@ -421,5 +445,3 @@ def gradient_descent(
     #                   log_arrays=log_arrays, log_arrays_ids=log_arrays_ids)
 
     return y.reshape(n_samples, n_components), error, total_its - start_it
-
-
