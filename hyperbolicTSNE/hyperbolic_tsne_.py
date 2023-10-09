@@ -1,10 +1,6 @@
-
-
+"""HyperbolicTSNE estimator.
+"""
 import numpy as np
-
-from . import hd_mat_ as hd_mat
-from .initializations_ import initialization
-from .optimizer_ import SequentialOptimizer
 
 from sklearn.base import BaseEstimator
 
@@ -12,13 +8,15 @@ from sklearn.utils import check_random_state
 from sklearn.utils.validation import _deprecate_positional_args
 from sklearn.utils.validation import check_non_negative
 
+from . import hd_mat_ as hd_mat
+from .initializations_ import initialization
+from .optimizer_ import SequentialOptimizer
+
 
 class HyperbolicTSNE(BaseEstimator):
-    """High-dimensional embedding optimization
-    This is meant to be a general framework for embedding high-dimensional
-    data. For now it only supports TSNE, but the goal is to support other
-    methods like UMAP and the Elastic Embedding to be able to easily compare
-    their results and performance.
+    """
+    Estimator that permits computing Hyperbolic Embeddings of high-dimensional
+    data. 
 
     Parameters
     ----------
@@ -69,7 +67,7 @@ class HyperbolicTSNE(BaseEstimator):
         function. See :term: `Glossary <random_state>`.
     n_jobs : int or None, optional (default=None)
         The number of parallel jobs to run for neighbors search. This parameter
-        has no impact when ``metric="precomputed"`` or
+        has no impact when ``metric="parecomputed"`` or
         (``metric="euclidean"`` and ``method="exact"``).
         ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
         ``-1`` means using all processors. See :term:`Glossary <n_jobs>`
@@ -86,9 +84,9 @@ class HyperbolicTSNE(BaseEstimator):
     Examples
     --------
     >>> import numpy as np
-    >>> from sklearn.manifold import TSNE
+    >>> from hyperbolicTSNE import HyperbolicTSNE
     >>> X = np.array([[0, 0, 0], [0, 1, 1], [1, 0, 1], [1, 1, 1]])
-    >>> X_embedded = HDEO(dr_method='tsne').fit_transform(X)
+    >>> X_embedded = HyperbolicTSNE().fit_transform(X)
     >>> X_embedded.shape
     (4, 2)
     """
@@ -107,6 +105,7 @@ class HyperbolicTSNE(BaseEstimator):
         self.hd_method = hd_method
         self.hd_params = hd_params
 
+        self.optimizer = None
         self.opt_method = opt_method
         self.opt_params = opt_params
 
@@ -116,16 +115,48 @@ class HyperbolicTSNE(BaseEstimator):
         self.embedding_ = None
 
     def _fit(self, X):
-        """Taking into account self.hd_method, self.hd_params, self.opt_method, self.opt_params. Checks whether
-        everything is in order to run the optimizer."""
+        """Checks whether everything is in order to run the optimizer. Taking into account 
+        self.hd_method, self.hd_params, self.opt_method, self.opt_params. 
+
+        Parameters
+        ----------
+        X : array of shape (n_samples, n_features) or tuple with arrays (D, V)
+        ((n_samples, n_samples),(n_samples, n_samples))
+            If X is provided, D and V will be computed from it using the specified
+            metric in hd_method. If a tuple is sent, the user is in charge of making
+            sure that D is the distance matrix and V is the high-dimensional methods
+            (e.g. P for tSNE).
+
+        Returns
+        -------
+        X_new: array, shape (n_samples, n_components)
+            Embedding of the training data in low-dimensional space.
+
+        Raises
+        ------
+        Exception
+            _description_
+        Exception
+            _description_
+        Exception
+            _description_
+        ValueError
+            _description_
+        ValueError
+            _description_
+        ValueError
+            _description_
+        ValueError
+            _description_
+        """
 
         random_state = check_random_state(self.random_state)
         X_is_iterable = type(X) is tuple or type(X) is list
 
         if not X_is_iterable:
             if self.metric == "precomputed":
-                raise Exception(
-                    "metric is precomputed, so X should be the tuple (D, V) with at least the distance matrix D")
+                raise TypeError(
+                    "`metric` is precomputed, so X should be the tuple (D, V) with at least the distance matrix D")
             D = None
             V = None
             X = self._validate_data(X, accept_sparse=['csr'],
@@ -133,43 +164,50 @@ class HyperbolicTSNE(BaseEstimator):
                                     dtype=[np.float32, np.float64])
         else:
             if self.metric != "precomputed":
-                raise Exception(
-                    "metric should be precomputed given that D is already given")
+                raise ValueError(
+                    "`metric` should be precomputed given that D is already given")
             if self.verbose > 0:
-                print("[HDEO] Received iterable as input. It should have len=2 and contain (D=None, V=None)")
+                print(
+                    "[HyperbolicTSNE] Received iterable as input. It should have len=2 and contain (D=None, V=None)")
             if len(X) != 2:
-                raise Exception("X is an iterable, but does not have len=2, aborting")
+                raise ValueError(
+                    "X is an iterable, but does not have len=2, aborting")
             D, V = X
 
         # Checking hd_mat params
         if X_is_iterable:
             if isinstance(self.init, str) and self.init == "pca":
-                raise ValueError("The parameter init=\"pca\" cannot be used with metric=\"precomputed\".")
+                raise ValueError(
+                    "The parameter init=\"pca\" cannot be used with metric=\"precomputed\".")
 
             X = None
             if D is None and V is None:
-                raise ValueError("[HDEO] Both D and V matrices cannot be None")
+                raise ValueError("[HyperbolicTSNE] Both D and V matrices cannot be None")
             else:
                 if D is not None:
                     if D.shape[0] != D.shape[1]:
-                        raise ValueError("[HDEO] D should be a square distance matrix")
-                    check_non_negative(D, "HDEO.fit(). With hd_params.metric='precomputed', X[0] "
+                        raise ValueError(
+                            "[HyperbolicTSNE] D should be a square distance matrix")
+                    check_non_negative(D, "HyperbolicTSNE.fit(). With hd_params.metric='precomputed', X[0] "
                                           "should contain positive distances.")
                     D = self._validate_data(D, accept_sparse=['csr'],
                                             ensure_min_samples=2,
                                             dtype=[np.float32, np.float64])
                 else:
-                    print("[HDEO] Warning: D matrix is None, make sure this is supported by the optimizer")
+                    print(
+                        "[HyperbolicTSNE] Warning: D matrix is None, make sure this is supported by the optimizer")
                 if V is not None:
                     if V.shape[0] != V.shape[1]:
-                        raise ValueError("[HDEO] V should be a square distance matrix")
-                    check_non_negative(V, "HDEO.fit(). With hd_params.metric='precomputed', X[1] "
+                        raise ValueError(
+                            "[HyperbolicTSNE] V should be a square distance matrix")
+                    check_non_negative(V, "HyperbolicTSNE.fit(). With hd_params.metric='precomputed', X[1] "
                                           "should contain positive distances.")
                     V = self._validate_data(V, accept_sparse=['csr'],
                                             ensure_min_samples=2,
                                             dtype=[np.float32, np.float64])
                 else:
-                    print("[HDEO] Warning: V matrix is None, make sure this is supported by the optimizer")
+                    print(
+                        "[HyperbolicTSNE] Warning: V matrix is None, make sure this is supported by the optimizer")
 
         D, V = hd_mat.hd_matrix(X=X, D=D, V=V,
                                 metric=self.metric, n_neighbors=self.knn_neighbors,
@@ -181,14 +219,16 @@ class HyperbolicTSNE(BaseEstimator):
         if isinstance(self.init, np.ndarray):
             X_embedded = self.init
         else:
-            X_embedded = initialization(n_samples, self.n_components, X, self.init, random_state=random_state)
+            X_embedded = initialization(
+                n_samples, self.n_components, X, self.init, random_state=random_state)
 
         # Checking opt params
         self.opt_params["D"] = D  # Some optimizers need this
-        self.optimizer = self.opt_method(Y0=X_embedded, V=V, n_components=self.n_components, other_params=self.opt_params, verbose=self.verbose)
-        Y, cf, runtime, its = self.optimizer.run()
+        self.optimizer = self.opt_method(
+            Y0=X_embedded, V=V, n_components=self.n_components, other_params=self.opt_params, verbose=self.verbose)
+        X_embedded, cf, runtime, its = self.optimizer.run()
 
-        return Y
+        return X_embedded
 
     def fit_transform(self, X, Y=None):
         """Fit X into an embedded space and return that transformed output.
@@ -201,13 +241,14 @@ class HyperbolicTSNE(BaseEstimator):
             sure that D is the distance matrix and V is the high-dimensional methods
             (e.g. P for tSNE).
         Y : Ignored
+
         Returns
         -------
-        X_new : array, shape (n_samples, n_components)
+        X_embedded : array, shape (n_samples, n_components)
             Embedding of the training data in low-dimensional space.
         """
-        embedding = self._fit(X)
-        self.embedding_ = embedding
+        X_embedded = self._fit(X)
+        self.embedding_ = X_embedded
         return self.embedding_
 
     def fit(self, X, Y=None):
