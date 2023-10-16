@@ -144,7 +144,7 @@ class HyperbolicKL:
         Returns
         -------
         float
-            KL Divergence value
+            KL Divergence value.
         """
         n_samples = V.shape[0]
         if self.params["method"] == "exact":
