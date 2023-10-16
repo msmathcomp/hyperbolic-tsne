@@ -188,7 +188,7 @@ def hd_matrix(*, X=None, D=None, V=None,
     if compute_V:
         if hd_method == "vdm2008":
             if verbose>0:
-                print(f"[hd_mat] `hd_method` set to `vdm2008`, running with perplexity {hd_params['perplexity']}. Returns (D, V)")
+                print(f"`hd_method` set to `vdm2008`, running with perplexity {hd_params['perplexity']}. Returns (D, V)")
             V = _vdm2008(D, verbose=verbose, n_jobs=n_jobs, **hd_params)
 
     return D, V
@@ -231,11 +231,11 @@ def _distance_matrix(X, method="sklearn", n_neighbors=None, metric="euclidean", 
         other_params = {}
 
     if verbose > 0:
-        print(f"[hd_mat] Computing the kNN D matrix with k={n_neighbors} nearest neighbors...")
+        print(f"Computing the kNN D matrix with k={n_neighbors} nearest neighbors...")
 
     if method == "sklearn":
         if verbose > 0:
-            print("[hd_mat] Using sklearn NearestNeighbor, an exact method, for the knn computation")
+            print("Using sklearn NearestNeighbor, an exact method, for the knn computation")
 
         n_samples = X.shape[0]
 
@@ -246,13 +246,13 @@ def _distance_matrix(X, method="sklearn", n_neighbors=None, metric="euclidean", 
         knn.fit(X)
         duration = time() - t0
         if verbose:
-            print(f"[hd_mat] Indexed {n_samples} samples in {duration:.3f}s...")
+            print(f"Indexed {n_samples} samples in {duration:.3f}s...")
 
         t0 = time()
         distances_nn = knn.kneighbors_graph(mode='distance')
         duration = time() - t0
         if verbose:
-            print(f"[hd_mat] Computed neighbors for {n_samples} samples ""in {duration:.3f}s...")
+            print(f"Computed neighbors for {n_samples} samples ""in {duration:.3f}s...")
 
         # Free the memory used by the ball_tree
         del knn
@@ -269,7 +269,7 @@ def _distance_matrix(X, method="sklearn", n_neighbors=None, metric="euclidean", 
 
     elif method == "hnswlib":
         if verbose > 0:
-            print("[hd_mat] Using hnswlib, an approximate method, for the knn computation")
+            print("Using hnswlib, an approximate method, for the knn computation")
 
         if metric not in ["euclidean","l2","cosine"]:
             raise ValueError("Approximate kNN calculation based on hnswlib supports euclidean (l2) and cosine distances")
@@ -356,6 +356,6 @@ def _vdm2008(distances, perplexity=50, verbose=0, n_jobs=1):
     assert np.all(np.abs(V.data) <= 1.0)
     if verbose >= 2:
         duration = time() - t0
-        print(f"[hd_mat] Computed conditional probabilities in {duration:.3f}s")
+        print(f"Computed conditional probabilities in {duration:.3f}s")
 
     return V

@@ -1,4 +1,5 @@
-
+""" Methods for initializing embedding.
+"""
 import numpy as np
 from sklearn.decomposition import PCA
 
@@ -41,7 +42,6 @@ def initialization(n_samples, n_components, X=None, method="random", random_stat
         X_embedded = pca.fit_transform(X).astype(np.float32, copy=False)
         X_embedded /= np.std(X_embedded[:, 0]) * 10000  # Need to rescale to avoid convergence issues
     else:
-        raise ValueError("method of initialization `{}` not supported. "
-                         "init' must be 'pca', 'random', or a numpy array".format(method))
+        raise ValueError(f"Method of initialization `{method}` not supported. init' must be 'pca', 'random', or a numpy array")
 
     return X_embedded
