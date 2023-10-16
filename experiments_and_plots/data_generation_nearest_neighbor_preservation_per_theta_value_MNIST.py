@@ -6,19 +6,18 @@ timing data for the iterations.
 If a run does not finish, the results are not saved.
 The code only computes the runs that do not have a folder.
 """
-import json
 ###########
 # IMPORTS #
 ###########
 
-import os
+import json
 import traceback
 from pathlib import Path
 
 import numpy as np
 from scipy.sparse import issparse, save_npz
 
-from hyperbolicTSNE.quality_evaluation_ import hyperbolic_nearest_neighbor_preservation, nearest_neighbor_preservation
+from hyperbolicTSNE.quality_evaluation_ import hyperbolic_nearest_neighbor_preservation
 from matplotlib import pyplot as plt
 from hyperbolicTSNE import load_data, Datasets, SequentialOptimizer, initialization, HyperbolicTSNE
 from hyperbolicTSNE.util import find_last_embedding
