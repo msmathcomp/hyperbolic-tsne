@@ -1,21 +1,15 @@
 """
-This experiment evaluates the performance of hyperbolic tSNE by assessing how many nearest neighbors it preserved.
-We want to produce similar results as: 
-Which is based on the nearest neighbor preservation metric introduced at:
-Inputs:
- - 
-Outputs:
- - 
+This experiment runs the hyperbolic tsne code changing several parameters:
+- dataset: [LUKK, MYELOID8000, PLANARIA, MNIST, C_ELEGANS, WORDNET]
+- tsne_type: [accelerated, exact]
+For each configuration combination, it saves the embedding coordinates, a plot of the embedding, and
+timing data for the iterations.
+If a run does not finish, the results are not saved.
+The code only computes the runs that do not have a folder.
 """
-
-# Sketch code:
-# For each dataset (a directory in results folder)
-# For each size (a directory within the dataset directory)
-# For each configuration (a directory within the size directory)
-# For each run 
-# List all P matrices and final embeddings
-# For each 
-# Obtain: thresholds, precisions, recalls, num_true_positives
+###########
+# IMPORTS #
+###########
 
 from pathlib import Path
 import numpy as np
@@ -24,25 +18,22 @@ import matplotlib.pyplot as plt
 
 from hyperbolicTSNE.quality_evaluation_ import hyperbolic_nearest_neighbor_preservation
 from hyperbolicTSNE import Datasets, load_data
-from hyperbolicTSNE.util import find_last_embedding
 
-BASE_DIR = Path("../results/exp_full_size_runs")
-DATASETS_DIR = "../datasets"
+#################################
+# GENERAL EXPERIMENT PARAMETERS #
+#################################
 
-NEIGHBORHOOD_SIZE = 100
-K_START = 1
-K_MAX = 30
-EXACT_NN = False
-CONSIDER_ORDER = False
-STRICT = False
-TO_RETURN = "full"
+BASE_DIR = Path("../results/full_size_one_run")
+DATASETS_DIR = "../datasets"  # directory to read the data from
 
-PERP = 30
+# Constants
+NEIGHBORHOOD_SIZE = 100  # Neighborhood size to grab the k_max many neighbors from
+K_START = 1  # Lowest point in the precision/recall curve
+K_MAX = 30  # Highest point in the precision/recall curve
+PERP = 30  # perplexity value to be used throughout the experiments
+hd_params = {"perplexity": PERP}
 
-hd_params = {
-    "perplexity": PERP
-}
-
+# Iterate over all results,
 for dataset_dir in BASE_DIR.glob("*"):
     if dataset_dir.is_dir():
         dataset_name = dataset_dir.stem
@@ -57,7 +48,7 @@ for dataset_dir in BASE_DIR.glob("*"):
                     if config_dir.is_dir():
                         for run_dir in config_dir.glob("*"):
                             if run_dir.is_dir():
-                                print(run_dir)
+                                print(f"[NNP plot] Processing {run_dir}.")
                                 subset_idx = np.load(run_dir.joinpath("subset_idx.npy"), allow_pickle=True)
                                 dataX_sample = dataX[subset_idx]
 
@@ -68,21 +59,21 @@ for dataset_dir in BASE_DIR.glob("*"):
                                 else:
                                     D_X = np.load(D_path, allow_pickle=True)[()]
 
-                                # dataY = find_last_embedding(run_dir.joinpath("embeddings"))
-
                                 dataY = np.load(run_dir.joinpath("final_embedding.npy"), allow_pickle=True)
 
                                 thresholds, precisions, recalls, true_positives = \
-                                    hyperbolic_nearest_neighbor_preservation(dataX_sample,
-                                                                             dataY,
-                                                                             K_START,
-                                                                             K_MAX,
-                                                                             D_X,
-                                                                             EXACT_NN,
-                                                                             CONSIDER_ORDER,
-                                                                             STRICT,
-                                                                             TO_RETURN,
-                                                                             NEIGHBORHOOD_SIZE)
+                                    hyperbolic_nearest_neighbor_preservation(
+                                        dataX_sample,
+                                        dataY,
+                                        K_START,
+                                        K_MAX,
+                                        D_X,
+                                        False,
+                                        False,
+                                        False,
+                                        "full",
+                                        NEIGHBORHOOD_SIZE
+                                    )
 
                                 # save results inside folder
                                 np.save(run_dir.joinpath("thresholds.npy"), thresholds)
@@ -92,9 +83,9 @@ for dataset_dir in BASE_DIR.glob("*"):
 
                                 # Add points to plot
                                 if config_dir.name == 'configuration_0':
-                                    ax.scatter(precisions, recalls, label="accelerated")
+                                    ax.plot(precisions, recalls, label="accelerated")
                                 else:
-                                    ax.scatter(precisions, recalls, label="exact")
+                                    ax.plot(precisions, recalls, label="exact")
 
         ax.set_xlabel("Precision")
         ax.set_ylabel("Recall")
