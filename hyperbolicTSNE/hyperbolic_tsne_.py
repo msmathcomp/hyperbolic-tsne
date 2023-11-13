@@ -78,7 +78,7 @@ class HyperbolicTSNE(BaseEstimator):
     embedding_ : array-like, shape (n_samples, n_components)
         Stores the embedding vectors.
     cost_function_ : float
-        Const function value after optimization.
+        Cost function value after optimization.
     n_iter_ : int
         Number of iterations run.
     Examples
