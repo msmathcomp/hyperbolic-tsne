@@ -16,12 +16,17 @@ venv
 
 # datasets
 datasets
+
+# compiled folders and files
 build
-results
-temp
 *.egg-info
 *.cpp
 *.pyd
 *.so
 
+# VS Code workspace
 .vscode
+
+# Outputs
+results
+temp
