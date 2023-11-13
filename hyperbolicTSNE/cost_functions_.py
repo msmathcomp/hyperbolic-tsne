@@ -9,8 +9,9 @@ import ctypes
 
 import numpy as np
 
-from .hyperbolic_barnes_hut import tsne
 from sklearn.utils._openmp_helpers import _openmp_effective_n_threads
+
+from hyperbolicTSNE.hyperbolic_barnes_hut.tsne import gradient
 
 MACHINE_EPSILON = np.finfo(np.double).eps
 
@@ -44,7 +45,10 @@ def check_params(params):
             raise ValueError(f"{p} is not in the param set of the `{params['method']}` version of HyperbolicKL.")
     for p in all_params:
         if p not in params["params"]:
-            raise ValueError(f"{p} params is necessary for the `{params['method']}` version of HyperbolicKL. Please set a value or use a preset.")
+            raise ValueError(
+                f"{p} params is necessary for the `{params['method']}` version of HyperbolicKL. Please set a value or "
+                f"use a preset."
+            )
 
 
 class HyperbolicKL:
@@ -57,15 +61,12 @@ class HyperbolicKL:
         Dimension of the embedded space.
     other_params : dict
         Cost function params in key-value format.
-
-    Attributes
-    ----------
-    timings : list
-        Stores the timings of each iteration.
     """
     def __init__(self, *, n_components, other_params=None):
         if other_params is None:
-            raise ValueError("No `other_params` specified for HyperbolicKL, please add your params or select one of the presets.")
+            raise ValueError(
+                "No `other_params` specified for HyperbolicKL, please add your params or select one of the presets."
+            )
         self.n_components = n_components
         self.params = other_params
 
@@ -104,7 +105,12 @@ class HyperbolicKL:
         """
         return {
             "method": "exact",
-            "params": {"degrees_of_freedom": 1, "skip_num_points": 0, "num_threads": _openmp_effective_n_threads(), "verbose": False}
+            "params": {
+                "degrees_of_freedom": 1,
+                "skip_num_points": 0,
+                "num_threads": _openmp_effective_n_threads(),
+                "verbose": False
+            }
         }
 
     @classmethod
@@ -248,7 +254,7 @@ class HyperbolicKL:
 
         grad = np.zeros(Y.shape, dtype=ctypes.c_double)
         timings = np.zeros(4, dtype=ctypes.c_float)
-        error = tsne.gradient(
+        error = gradient(
             timings,
             val_V, Y, neighbors, indptr, grad,
             0.5,
@@ -318,7 +324,7 @@ class HyperbolicKL:
 
         grad = np.zeros(Y.shape, dtype=ctypes.c_double)
         timings = np.zeros(4, dtype=ctypes.c_float)
-        error = tsne.gradient(
+        error = gradient(
             timings,
             val_V, Y, neighbors, indptr, grad,
             self.params["params"]["angle"],
