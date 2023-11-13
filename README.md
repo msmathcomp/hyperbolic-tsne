@@ -10,7 +10,7 @@ This repository contains the code of the paper ... TODO
 4. Install dependencies with pip: `pip install -r requirements.txt`
 5. Build Cython extensions: `python setup.py build_ext --inplace`
 6. Install hyperbolic-tsne package: `pip install .`
-7. To test installation run `python -c "from hyperbolicTSNE import HyperbolicTSNE"`. No errors should be raised.
+7. To test installation run `python -c "from hyperbolicTSNE import HyperbolicTSNE"`. No errors should be raised and you should see the output `Please note that 'empty_sequence' uses the KL divergence with Barnes-Hut approximation (angle=0.5) by default.`.
 
 Note: on macOS, the build process of the Cython extensions might yield an error if it cannot find OpenMP.
 This error can be ignored and the package will still be correctly installed and able to run. 
