@@ -1,5 +1,7 @@
 # Accelerating hyperbolic t-SNE
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 This repository contains the code for the paper:
 > Skrodzki, M., van Geffen, H., Chaves-de-Plaza, N.F., Höllt, T., Eisemann, E. and Hildebrandt, K, Accelerating hyperbolic t-SNE, 2024, IEEE TCVG.
 
@@ -40,10 +42,6 @@ After a successful installation of the repository's requirements, there are two 
 First, `example_basic_usage.ipynb` offers a step-by-step guide showing how to use the `HyperbolicTSNE` package to embed a high-dimensional dataset. 
 Second, the `example_different_params.py` script shows how to setup a script for quick experimentation. In this case, to compare the effect of different parameters.
 
-## Replicating the paper results
-
-TODO
-
 ## Data
 
 You can run hyperbolic TSNE on your high-dimensional data. 
@@ -60,11 +58,10 @@ Individual instructions per dataset:
 - WORDNET
 - C_ELEGANS: https://data.caltech.edu/records/1945 
 
-
-
-## References
+## Replicating the paper results
 
 TODO
+
 
 ## License
 
