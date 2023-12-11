@@ -1,6 +1,26 @@
-# HyperbolicTSNE
+# Accelerating hyperbolic t-SNE
 
-This repository contains the code of the paper ... TODO
+This repository contains the code for the paper:
+> Skrodzki, M., van Geffen, H., Chaves-de-Plaza, N.F., Höllt, T., Eisemann, E. and Hildebrandt, K, Accelerating hyperbolic t-SNE, 2024, IEEE TCVG.
+
+If you use our code in your publications please consider citing:
+```
+@article{skrodzki2024hyperbolic,
+    title={Accelerating hyperbolic t-SNE},
+    author={Skrodzki, Martin and van Geffen, Hunter and Chaves-de-Plaza, Nicolas F. and H\"{o}llt, Thomas and Eisemann, Elmar and Hildebrandt Klaus},
+    journal={IEEE Transactions on Visualization and Computer Graphics},
+    year={2024},
+    volume={TODO},
+    number={TODO},
+    pages={TODO},    
+    doi={TODO},
+    eprint={TODO}
+}
+```
+
+![teaser of the paper](teaser.png)
+
+<TODO: LINK TO PAPER>
 
 ## Setup
 
@@ -15,6 +35,14 @@ This repository contains the code of the paper ... TODO
 Note: on macOS, the build process of the Cython extensions might yield an error if it cannot find OpenMP.
 This error can be ignored and the package will still be correctly installed and able to run. 
 The main consequence of this error is that the optimization iterations are going to run slower.
+
+There are two ways of getting stated with the `hyperbolicTSNE` package after setting it up.
+First, `example_basic_usage.ipynb` offers a step-by-step guide showing how to use the HyperbolicTSNE package to embed a high-dimensional dataset. 
+Second, the `example_different_params.py` script shows how to setup a script for quick experimentation. In this case, to compare the effect of different parameters.
+
+## Replicating the paper results
+
+TODO
 
 ## Data
 
@@ -32,17 +60,12 @@ Individual instructions per dataset:
 - WORDNET
 - C_ELEGANS: https://data.caltech.edu/records/1945 
 
-## First steps
-
-There are two ways of getting stated with the `hyperbolicTSNE` package after setting it up.
-First, `example_basic_usage.ipynb` offers a step-by-step guide showing how to use the HyperbolicTSNE package to embed a high-dimensional dataset. 
-Second, the `example_different_params.py` script shows how to setup a script for quick experimentation. In this case, to compare the effect of different parameters.
 
 
-## Replicating the paper results
+## References
 
 TODO
 
-## References
+## License
 
 TODO
