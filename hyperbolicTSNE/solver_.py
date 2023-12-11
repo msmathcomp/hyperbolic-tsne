@@ -332,8 +332,7 @@ def gradient_descent(
             # if isinstance(cf, HyperbolicKL):
             #     logging_dict[logging_key]["times"].append(duration_l)
             #     logging_dict[logging_key]["hyperbolic"].append(cf.results[-1])
-
-            # TODO: For grid run only run every 50 iterations if hyperbolic
+            
             # if not isinstance(cf, HyperbolicKL) or i % 50 == 0 or i == total_its - 1:
             log_iteration(logging_dict, logging_key, i, y, n_samples, n_components,
                           cf_val=error, grad=grad, grad_norm=grad_norm,

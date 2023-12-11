@@ -2,6 +2,7 @@
 All methods return a numpy matrix X and a labels vector Y, if available.
 """
 import os
+from pathlib import Path
 import time
 import gzip
 from enum import Enum, auto
@@ -109,9 +110,7 @@ def load_c_elegans(data_home, return_X_y=True):
         Locations of the folder where the datasets are stored.
     return_X_y: bool, optional
         If True, method only returns tuple with the data and its labels.
-    """
-    # Starting to use path instead of os TODO: move these to global imports
-    from pathlib import Path
+    """    
     import anndata as ad
 
     # Use default location
@@ -146,8 +145,6 @@ def load_myeloid(data_home, return_X_y=True):
     return_X_y: bool, optional
         If True, method only returns tuple with the data and its labels.
     """
-    # Starting to use path instead of os TODO: move these to global imports
-    from pathlib import Path
 
     # Use default location
     if data_home is None:
@@ -180,8 +177,6 @@ def load_myeloid8000(data_home, return_X_y=True):
     return_X_y: bool, optional
         If True, method only returns tuple with the data and its labels.
     """
-    # Starting to use path instead of os TODO: move these to global imports
-    from pathlib import Path
 
     # Use default location
     if data_home is None:
@@ -214,8 +209,6 @@ def load_planaria(data_home, return_X_y=True):
     return_X_y: bool, optional
         If True, method only returns tuple with the data and its labels.
     """
-    # Starting to use path instead of os TODO: move these to global imports
-    from pathlib import Path
 
     # Use default location
     if data_home is None:
@@ -247,8 +240,6 @@ def load_wordnet(data_home, return_X_y=True):
     return_X_y: bool, optional
         If True, method only returns tuple with the data and its labels.
     """
-    # Starting to use path instead of os TODO: move these to global imports
-    from pathlib import Path
     import torch
 
     # Use default location
@@ -283,8 +274,6 @@ def load_lukk(data_home, return_X_y=True):
     return_X_y: bool, optional
         If True, method only returns tuple with the data and its labels.
     """
-    # Starting to use path instead of os TODO: move these to global imports
-    from pathlib import Path
 
     # Use default location
     if data_home is None:
@@ -405,7 +394,6 @@ def load_data(dataset, data_home=None, to_return='all', pca_components=100,
     sample_idx : ndarray, optional
         List of sampling indices.
     """
-    # TODO: how to deal with parameter complexity?
     if random_state > 0:
         np.random.seed(random_state)
     D_filepath = None
