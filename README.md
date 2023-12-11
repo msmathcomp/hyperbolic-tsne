@@ -20,7 +20,7 @@ If you use our code in your publications please consider citing:
 }
 ```
 
-<TODO: LINK TO PAPER>
+[Future link to paper]
 
 ## Setup
 
@@ -36,8 +36,8 @@ Note: on macOS, the build process of the Cython extensions might yield an error 
 This error can be ignored and the package will still be correctly installed and able to run. 
 The main consequence of this error is that the optimization iterations are going to run slower.
 
-There are two ways of getting stated with the `hyperbolicTSNE` package after setting it up.
-First, `example_basic_usage.ipynb` offers a step-by-step guide showing how to use the HyperbolicTSNE package to embed a high-dimensional dataset. 
+After a successful installation of the repository's requirements, there are two ways to get started. 
+First, `example_basic_usage.ipynb` offers a step-by-step guide showing how to use the `HyperbolicTSNE` package to embed a high-dimensional dataset. 
 Second, the `example_different_params.py` script shows how to setup a script for quick experimentation. In this case, to compare the effect of different parameters.
 
 ## Replicating the paper results
