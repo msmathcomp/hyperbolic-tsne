@@ -1,5 +1,4 @@
-"""
-TODO Documentation
+""" Quality metrics for the embeddings.
 """
 
 import numpy as np
@@ -16,7 +15,9 @@ def hyperbolic_nearest_neighbor_preservation(X, Y, k_start=1, k_max=15, D_X=None
     of the high-dimensional data `X`. See Section 6 of
     Pezzotti, Nicola, et al. "Hierarchical stochastic neighbor embedding."
     Computer Graphics Forum. Vol. 35. No. 3. 2016. for a detailed description of the approach.
-    --------
+
+    Parameters
+    ----------
     X: ndarray
         Coordinates in original -high dimensional- space.
     Y: ndarray

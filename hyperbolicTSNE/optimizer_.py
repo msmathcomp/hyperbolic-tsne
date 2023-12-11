@@ -54,15 +54,13 @@ def check_params(params):
                             "entries. Please check the presets for more information.")
         if e["type"] not in ["processor", "solver"]:
             raise Exception("`type` of sequence's block in SequentialOptimizer was not recognized.")
-        # TODO: checks for specific types of blocks
 
 
 class SequentialOptimizer:
-    """ TODO Class Documentation """
 
     def __init__(self, *, Y0, V, n_components, other_params=None, verbose=0):
         """
-        TODO Method Docu
+        Constructor of a sequential optimizer which executes several blocks sequentially.
         """
         if other_params is None:
             raise Exception("No `other_params` specified for SequentialOptimizer, please add your params or select "
@@ -284,9 +282,9 @@ class SequentialOptimizer:
         earlyExaggeration_its : int
             A positive number of early exaggeration steps to be performed by the solver.
         momentum : float, optional (default=0.8)
-            TODO What is the momentum?
+            Momentum for the gradient descent procedure.
         learning_rate : float, optional (default=200.0)
-            TODO What is the learning_rate?
+            Learning rate for the gradient descent procedure.
         exaggeration : float, optional (default=12.0)
             The value with which to multiply the V matrix before performing earlyExaggeration_its many gradient descent
             steps.
@@ -350,9 +348,9 @@ class SequentialOptimizer:
         gradientDescent_its : int
             A positive number of gradient descent steps to be performed by the solver.
         momentum : float, optional (default=0.8)
-            TODO What is the momentum?
+            Momentum for the gradient descent procedure.
         learning_rate : float, optional (default=200.0)
-            TODO What is the learning_rate?
+            Learning rate for the gradient descent procedure.
         rescale : float, optional (default: None)
             Rescale the embedding to have a bbox diagonal of this value whenever rescaling, if None, no rescaling is
             performed.
