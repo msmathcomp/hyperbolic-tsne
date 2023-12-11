@@ -71,3 +71,17 @@ The general workflow to reproduce the results from the paper is:
 - Run the scripts to generate tables.
 
 Note that the data generation scripts assume a top-level folder, i.e., a folder next to "examples", "experiments", etc., called "datasets" that holds the datasets to be embedded.
+
+## License and third-party software
+The source code in this repository is released under the MIT License. However, all used third-party software libraries are governed by their own respective licenes. Without the following libraries, this project would have been considerably harder: 
+[scipy](https://scipy.org),
+[numpy](https://numpy.org),
+[scikit-learn](https://scikit-learn.org/stable/),
+[hnswlib](https://github.com/nmslib/hnswlib),
+[pandas](https://pandas.pydata.org),
+[anndata](https://anndata.readthedocs.io/en/latest/),
+[seaborn](https://seaborn.pydata.org),
+[setuptools](https://github.com/pypa/setuptools),
+[Cython](https://cython.org),
+[tqdm](https://github.com/tqdm/tqdm),
+[ipykernel](https://ipython.org).
