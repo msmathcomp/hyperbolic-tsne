@@ -1,9 +1,6 @@
-#############################################################
-# This file has all the facilities for loading the datasets #
-# All methods should return a numpy matrix X and a labels
-# vector Y if  available
-##############################################################
-
+""" Facilities for loading the datasets used in the paper.
+All methods return a numpy matrix X and a labels vector Y, if available.
+"""
 import os
 import time
 import gzip
