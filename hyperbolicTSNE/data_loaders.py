@@ -241,10 +241,11 @@ def load_lukk(data_home):
 
     affymetrix = (
         pd.read_csv(
-            str(Path.joinpath(full_path, "E-MTAB-62.processed.2.zip")),
+            str(Path.joinpath(full_path, "E-MTAB-62_processed_2.csv")),
             sep='\t',
             index_col='Hybridization REF',
-            dtype='object'
+            dtype='object',
+            engine='python'
         )
         .drop('CompositeElement REF')
         .astype('float32')
