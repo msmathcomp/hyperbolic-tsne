@@ -3,6 +3,8 @@
 This repository contains the code for the paper:
 > Skrodzki, M., van Geffen, H., Chaves-de-Plaza, N.F., Höllt, T., Eisemann, E. and Hildebrandt, K, Accelerating hyperbolic t-SNE, 2024, IEEE TCVG.
 
+![teaser of the paper](teaser.png)
+
 If you use our code in your publications please consider citing:
 ```
 @article{skrodzki2024hyperbolic,
@@ -17,8 +19,6 @@ If you use our code in your publications please consider citing:
     eprint={TODO}
 }
 ```
-
-![teaser of the paper](teaser.png)
 
 <TODO: LINK TO PAPER>
 
