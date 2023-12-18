@@ -295,7 +295,7 @@ def load_lukk(data_home, return_X_y=True):
 
     affymetrix = (
         pd.read_csv(
-            str(Path.joinpath(full_path, "E-MTAB-62_processed_2.csv")),
+            str(Path.joinpath(full_path, "E-MTAB-62.processed.2.zip")),
             sep='\t',
             index_col='Hybridization REF',
             dtype='object',
