@@ -51,12 +51,12 @@ We recommend putting all datasets in a `datasets` directory at the root of this 
 The `load_data` function expects this path (`data_home`) to resolve the dataset.
 
 Individual instructions per dataset:
-- LUKK
-- MYELOID8000
-- PLANARIA: https://shiny.mdc-berlin.de/psca/ 
-- MNIST
-- WORDNET
-- C_ELEGANS: https://data.caltech.edu/records/1945 
+- [LUKK](https://www.ebi.ac.uk/biostudies/arrayexpress/studies/E-MTAB-62)
+- [MYELOID8000](https://github.com/scverse/scanpy_usage/tree/master/170430_krumsiek11)
+- [PLANARIA](https://shiny.mdc-berlin.de/psca/)
+- [MNIST](https://yann.lecun.com/exdb/mnist/)
+- [WORDNET](https://github.com/facebookresearch/poincare-embeddings)
+- [C_ELEGANS](https://github.com/Munfred/wormcells-data/releases)
 
 ## Replicating the paper results
 
