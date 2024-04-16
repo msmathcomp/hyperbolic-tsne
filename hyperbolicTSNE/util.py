@@ -4,6 +4,8 @@ import numpy as np
 
 
 def find_last_embedding(log_path):
+    """ Give a path with logging results, finds the last embedding saved there.
+    """
     for subdir, dirs, files in reversed(list(os.walk(log_path))):
         files = [f for f in files if not f[0] == '.']
         dirs[:] = [d for d in dirs if not d[0] == '.']
@@ -17,6 +19,8 @@ def find_last_embedding(log_path):
 
 
 def find_ith_embedding(log_path, i):
+    """ Give a path with logging results, finds the i-th embedding saved there.
+    """
     j = 0
     for subdir, dirs, files in list(os.walk(log_path)):
         files = [f for f in files if not f[0] == '.']

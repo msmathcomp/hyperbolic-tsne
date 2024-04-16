@@ -23,6 +23,42 @@ MACHINE_EPSILON = np.finfo(np.double).eps
 def log_iteration(logging_dict, logging_key, it, y, n_samples, n_components,
                   cf=None, cf_params=None, cf_val=None, grad=None, grad_norm=None, log_arrays=False,
                   log_arrays_ids=None):
+    """
+    Log information about an optimization iteration.
+
+    Parameters
+    ----------
+    logging_dict : dict 
+        A dictionary containing logging information for different keys.
+    logging_key : str 
+        The key to identify the specific logging information within the logging_dict.
+    it: int 
+        The iteration number.
+    y : numpy.ndarray 
+        The embedding or solution obtained at the current iteration.
+    n_samples : int 
+        The number of samples or data points.
+    n_components : int 
+        The number of components or features in the embedding.
+    cf : object 
+        Cost function class with obj_grad method to compute the cost function value and gradient.
+    cf_params : dict 
+        Parameters to be passed to the obj_grad method of the cost function class.
+    cf_val : float 
+        The precomputed cost function value. If None, it will be computed using cf.
+    grad : numpy.ndarray 
+        The precomputed gradient. If None, it will be computed using cf.
+    grad_norm : float 
+        The norm of the gradient.
+    log_arrays : bool 
+        Whether to log embedding and gradient arrays.
+    log_arrays_id : list 
+        Iteration numbers to log arrays if log_arrays is True.
+
+    Returns
+    -------
+    None
+    """
     if cf_val is None and grad is None:
         if cf is not None and cf_params is not None:
             cf_val, grad = cf.obj_grad(y, **cf_params)
@@ -296,8 +332,7 @@ def gradient_descent(
             # if isinstance(cf, HyperbolicKL):
             #     logging_dict[logging_key]["times"].append(duration_l)
             #     logging_dict[logging_key]["hyperbolic"].append(cf.results[-1])
-
-            # TODO: For grid run only run every 50 iterations if hyperbolic
+            
             # if not isinstance(cf, HyperbolicKL) or i % 50 == 0 or i == total_its - 1:
             log_iteration(logging_dict, logging_key, i, y, n_samples, n_components,
                           cf_val=error, grad=grad, grad_norm=grad_norm,

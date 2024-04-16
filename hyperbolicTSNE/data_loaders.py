@@ -1,10 +1,8 @@
-#############################################################
-# This file has all the facilities for loading the datasets #
-# All methods should return a numpy matrix X and a labels
-# vector Y if  available
-##############################################################
-
+""" Facilities for loading the datasets used in the paper.
+All methods return a numpy matrix X and a labels vector Y, if available.
+"""
 import os
+from pathlib import Path
 import time
 import gzip
 from enum import Enum, auto
@@ -102,13 +100,17 @@ def load_mnist(data_home=None, return_X_y=True, kind='all'):
         return images
 
 
-def load_c_elegans(data_home):
+def load_c_elegans(data_home, return_X_y=True):
     """
-    Dataset from: https://data.caltech.edu/records/1945
-    Similar datasets at: https://github.com/Munfred/wormcells-data
-    """
-    # Starting to use path instead of os TODO: move these to global imports
-    from pathlib import Path
+    Loads C-ELEGANS data available at https://data.caltech.edu/records/1945 
+
+    Parameters
+    __________
+    data_home : str, optional
+        Locations of the folder where the datasets are stored.
+    return_X_y: bool, optional
+        If True, method only returns tuple with the data and its labels.
+    """    
     import anndata as ad
 
     # Use default location
@@ -126,12 +128,23 @@ def load_c_elegans(data_home):
 
     _, labels = np.unique(labels_str, return_inverse=True)
 
-    return X, labels
+    if return_X_y:
+        return X, labels
+    else:
+        return X
 
 
-def load_myeloid(data_home):
-    # Starting to use path instead of os TODO: move these to global imports
-    from pathlib import Path
+def load_myeloid(data_home, return_X_y=True):
+    """
+    Loads MYELOID data.
+
+    Parameters
+    __________
+    data_home : str, optional
+        Locations of the folder where the datasets are stored.
+    return_X_y: bool, optional
+        If True, method only returns tuple with the data and its labels.
+    """
 
     # Use default location
     if data_home is None:
@@ -147,12 +160,23 @@ def load_myeloid(data_home):
 
     _, labels = np.unique(labels_str, return_inverse=True)
 
-    return X, labels
+    if return_X_y:
+        return X, labels
+    else:
+        return X
 
 
-def load_myeloid8000(data_home):
-    # Starting to use path instead of os TODO: move these to global imports
-    from pathlib import Path
+def load_myeloid8000(data_home, return_X_y=True):
+    """
+    Loads MYELOID 8000 data.
+
+    Parameters
+    __________
+    data_home : str, optional
+        Locations of the folder where the datasets are stored.
+    return_X_y: bool, optional
+        If True, method only returns tuple with the data and its labels.
+    """
 
     # Use default location
     if data_home is None:
@@ -168,15 +192,23 @@ def load_myeloid8000(data_home):
 
     _, labels = np.unique(labels_str, return_inverse=True)
 
-    return X, labels
+    if return_X_y:
+        return X, labels
+    else:
+        return X
 
 
-def load_planaria(data_home):
+def load_planaria(data_home, return_X_y=True):
     """
-    Dataset from: https://shiny.mdc-berlin.de/psca/
+    Loads PLANARIA data available at https://shiny.mdc-berlin.de/psca/
+
+    Parameters
+    __________
+    data_home : str, optional
+        Locations of the folder where the datasets are stored.
+    return_X_y: bool, optional
+        If True, method only returns tuple with the data and its labels.
     """
-    # Starting to use path instead of os TODO: move these to global imports
-    from pathlib import Path
 
     # Use default location
     if data_home is None:
@@ -191,12 +223,23 @@ def load_planaria(data_home):
     labels_str = np.loadtxt(str(Path.joinpath(full_path, "R_annotation.txt")), delimiter=",", dtype=str)
     _, labels = np.unique(labels_str, return_inverse=True)
 
-    return X, labels
+    if return_X_y:
+        return X, labels
+    else:
+        return X
 
 
-def load_wordnet(data_home):
-    # Starting to use path instead of os TODO: move these to global imports
-    from pathlib import Path
+def load_wordnet(data_home, return_X_y=True):
+    """
+    Loads WORDNET data.
+
+    Parameters
+    __________
+    data_home : str, optional
+        Locations of the folder where the datasets are stored.
+    return_X_y: bool, optional
+        If True, method only returns tuple with the data and its labels.
+    """
     import torch
 
     # Use default location
@@ -214,12 +257,23 @@ def load_wordnet(data_home):
     labels_str = np.array(model["objects"])
     _, labels = np.unique(labels_str, return_inverse=True)
 
-    return X, labels
+    if return_X_y:
+        return X, labels
+    else:
+        return X
 
 
-def load_lukk(data_home):
-    # Starting to use path instead of os TODO: move these to global imports
-    from pathlib import Path
+def load_lukk(data_home, return_X_y=True):
+    """
+    Loads LUKK data.
+
+    Parameters
+    __________
+    data_home : str, optional
+        Locations of the folder where the datasets are stored.
+    return_X_y: bool, optional
+        If True, method only returns tuple with the data and its labels.
+    """
 
     # Use default location
     if data_home is None:
@@ -244,7 +298,8 @@ def load_lukk(data_home):
             str(Path.joinpath(full_path, "E-MTAB-62.processed.2.zip")),
             sep='\t',
             index_col='Hybridization REF',
-            dtype='object'
+            dtype='object',
+            engine='python'
         )
         .drop('CompositeElement REF')
         .astype('float32')
@@ -259,7 +314,11 @@ def load_lukk(data_home):
 
     _, labels = np.unique(labels_str, return_inverse=True)
 
-    return X, labels.astype(int)
+    labels = labels.astype(int)
+    if return_X_y:
+        return X, labels
+    else:
+        return X
 
 
 def _load_dataset(dataset, data_home=None, verbose=False, **kwargs):
@@ -271,17 +330,17 @@ def _load_dataset(dataset, data_home=None, verbose=False, **kwargs):
     if dataset == Datasets.MNIST:
         X, labels = load_mnist(data_home, **kwargs)
     if dataset == Datasets.MYELOID:
-        X, labels = load_myeloid(data_home)
+        X, labels = load_myeloid(data_home, **kwargs)
     if dataset == Datasets.MYELOID8000:
-        X, labels = load_myeloid8000(data_home)
+        X, labels = load_myeloid8000(data_home, **kwargs)
     if dataset == Datasets.PLANARIA:
-        X, labels = load_planaria(data_home)
+        X, labels = load_planaria(data_home, **kwargs)
     if dataset == Datasets.C_ELEGANS:
-        X, labels = load_c_elegans(data_home)
+        X, labels = load_c_elegans(data_home, **kwargs)
     if dataset == Datasets.LUKK:
-        X, labels = load_lukk(data_home)
+        X, labels = load_lukk(data_home, **kwargs)
     if dataset == Datasets.WORDNET:
-        X, labels = load_wordnet(data_home)
+        X, labels = load_wordnet(data_home, **kwargs)
     end = time.time()
     if verbose:
         print("[Data Loader] Data has been loaded and it took {}".format(end - start))
@@ -335,7 +394,6 @@ def load_data(dataset, data_home=None, to_return='all', pca_components=100,
     sample_idx : ndarray, optional
         List of sampling indices.
     """
-    # TODO: how to deal with parameter complexity?
     if random_state > 0:
         np.random.seed(random_state)
     D_filepath = None

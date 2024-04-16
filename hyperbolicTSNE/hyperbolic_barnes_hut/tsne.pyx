@@ -3,11 +3,9 @@
 # cython: cdivision=True
 # cython: language_level=3
 #
-# Author: Christopher Moody <chrisemoody@gmail.com>
-# Author: Nick Travers <nickt@squareup.com>
-# Implementation by Chris Moody & Nick Travers
-# See http://homepage.tudelft.nl/19j49/t-SNE.html for reference
-# implementations and papers describing the technique
+# This file implements hyperbolic t-SNE components efficiently using Cython.
+# The implementation is based on the tSNE code from Christopher Moody and 
+# and Nick Travers available at https://github.com/scikit-learn/scikit-learn/blob/main/sklearn/manifold/_barnes_hut_tsne.pyx
 import numpy as np
 cimport numpy as np
 from libc.stdio cimport printf

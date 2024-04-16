@@ -19,8 +19,9 @@ from hyperbolicTSNE.hyperbolic_barnes_hut.tsne import distance_py
 # GENERAL EXPERIMENT PARAMETERS #
 #################################
 
-results_path = Path("../results/timings_per_theta/")
-K_HYPERBOLIC_NEIGHBOR_APPROXIMATION = 15 # Number of nearest neighbors to consider in a Euclidean approximation to find
+DATASETS_DIR = "../datasets"  # directory to read the data from
+results_path = Path("../results/timings_per_theta")
+K_HYPERBOLIC_NEIGHBOR_APPROXIMATION = 15  # Number of nearest neighbors to consider in a Euclidean approximation to find
 # the actual nearest hyperbolic neighbor
 datasets = [
     Datasets.LUKK,
@@ -90,7 +91,7 @@ data = []
 for dataset in datasets:
 
     print(f"[Table One Nearest Neighbor Error] Processing data {dataset.name}, nearest neighbor errors:")
-    labels = load_data(dataset, to_return='labels')
+    labels = load_data(dataset, to_return='labels', data_home=DATASETS_DIR,)
 
     # For each dataset, find the embedding quality of the exact embedding
     exact_path = Path(f"{results_path}/{dataset.name}/theta_0.0/")
@@ -99,7 +100,7 @@ for dataset in datasets:
 
     theta_errors = []
     # For each dataset, iterate over the values of theta
-    for theta in [n / 20 for n in range(20, -1, -1)]:
+    for theta in [0.5]:
         theta_path = Path(f"{results_path}/{dataset.name}/theta_{theta}/")
         theta_one_nearest_neighbor_error = one_nearest_neighbor_error(theta_path)
         print(f"Theta {theta}: {theta_one_nearest_neighbor_error}")

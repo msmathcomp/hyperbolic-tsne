@@ -1,3 +1,5 @@
+""" Visualization functions to generating embedding plots in the paper.
+"""
 import os
 from collections import defaultdict
 from pathlib import Path

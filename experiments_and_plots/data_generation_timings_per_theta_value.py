@@ -97,7 +97,7 @@ for dataset in datasets:  # Iterate over the data sets
             angle=theta  # The theta value to be used in the acceleration
         )
 
-        run_dir = Path(f"{BASE_DIR}/exp_theta_times/{dataset.name}/theta_{theta}/")
+        run_dir = Path(f"{BASE_DIR}/{dataset.name}/theta_{theta}/")
 
         if run_dir.exists():
             # Skip already computed embeddings
