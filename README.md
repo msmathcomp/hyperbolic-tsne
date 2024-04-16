@@ -36,7 +36,7 @@ Individual instructions per dataset:
 
 There are two ways of getting stated with the `hyperbolicTSNE` package after setting it up.
 First, `example_basic_usage.ipynb` offers a step-by-step guide showing how to use the HyperbolicTSNE package to embed a high-dimensional dataset. 
-Second, the `example_different_params.py` script shows how to setup a script for quick experimentation. In this case, to compare the effect of different parameters.
+Second, the `example_different_params.py` script shows how to set up a script for quick experimentation. In this case, to compare the effect of different parameters.
 
 
 ## Replicating the paper results
