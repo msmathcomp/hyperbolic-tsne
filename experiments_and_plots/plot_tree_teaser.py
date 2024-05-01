@@ -8,6 +8,8 @@ import ctypes
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
+import pandas as pd
+import seaborn as sns
 from hyperbolicTSNE.hyperbolic_barnes_hut.tsne import _QuadTree
 from hyperbolicTSNE.hyperbolic_barnes_hut.tsne import distance_py
 
@@ -20,6 +22,67 @@ matplotlib.rcParams['figure.dpi'] = 300
 c = '#0173B2'  # Color for the tree
 s = '-'  # style of the tree lines
 w = 0.5  # width of the tree lines
+
+c_elegans_palette = {
+    'ABarpaaa_lineage': '#91003f',  # embryonic lineage
+    'Germline': '#7f2704',
+    # Somatic gonad precursor cell
+    'Z1_Z4': '#800026',
+
+    # Two embryonic hypodermal cells that may provide a scaffold for the early organization of ventral bodywall muscles
+    'XXX': '#fb8072',
+
+    'Ciliated_amphid_neuron': '#c51b8a', 'Ciliated_non_amphid_neuron': '#fa9fb5',
+
+    # immune
+    'Coelomocyte': '#ffff33', 'T': '#54278f',
+
+    # Exceratory
+    'Excretory_cell': '#004529',
+    'Excretory_cell_parent': '#006837',
+    'Excretory_duct_and_pore': '#238443',
+    'Parent_of_exc_duct_pore_DB_1_3': '#41ab5d',
+    'Excretory_gland': '#78c679',
+    'Parent_of_exc_gland_AVK': '#addd8e',
+    'Rectal_cell': '#d9f0a3',
+    'Rectal_gland': '#f7fcb9',
+    'Intestine': '#7fcdbb',
+
+    # esophagus, crop, gizzard (usually) and intestine
+    'Pharyngeal_gland': '#fed976',
+    'Pharyngeal_intestinal_valve': '#feb24c',
+    'Pharyngeal_marginal_cell': '#fd8d3c',
+    'Pharyngeal_muscle': '#fc4e2a',
+    'Pharyngeal_neuron': '#e31a1c',
+
+    # hypodermis (epithelial)
+    'Parent_of_hyp1V_and_ant_arc_V': '#a8ddb5',
+    'hyp1V_and_ant_arc_V': '#ccebc5',
+    'Hypodermis': '#253494',
+    'Seam_cell': '#225ea8',
+    'Arcade_cell': '#1d91c0',
+
+    # set of six cells that form a thin cylindrical sheet between pharynx and ring neuropile
+    'GLR': '#1f78b4',
+
+    # Glia, also called glial cells or neuroglia, are non-neuronal cells in the central nervous system
+    'Glia': '#377eb8',
+
+    # head mesodermal cell: the middle layer of cells or tissues of an embryo
+    'Body_wall_muscle': '#9e9ac8',
+    'hmc': '#54278f',
+    'hmc_and_homolog': '#02818a',
+    'hmc_homolog': '#bcbddc',
+    'Intestinal_and_rectal_muscle': '#41b6c4',
+    # Postembryonic mesoblast: the mesoderm of an embryo in its earliest stages.
+    'M_cell': '#3f007d',
+
+    # pharyngeal gland cel
+    'G2_and_W_blasts': '#abdda4',
+
+    'unannotated': '#969696',
+    'not provided': '#969696'
+}
 
 
 ##################
@@ -54,22 +117,20 @@ def cart2pol(p):
     return rho, phi
 
 
-def plot_tree(sc_data):
+def plot_tree(points, ax):
     rticks, thetagrids = [], []
 
-    # points = np.array([get_random_point(i) for i in range(n)])
-    points = np.array([cart_to_polar(p) for p in sc_data])
-    # cart_points = np.array([[r * np.cos(th), r * np.sin(th)] for r, th in points])
-    cart_points = sc_data
+    polar_points = np.array([cart_to_polar(p) for p in points])
+    cart_points = points
 
     pqt = _QuadTree(cart_points.shape[1], verbose=0)
     pqt.build_tree(cart_points)
 
     theta = 0.5
-    random_idx = np.random.randint(points.shape[0])
+    random_idx = np.random.randint(polar_points.shape[0])
 
     idx, summary = pqt._py_summarize(cart_points[random_idx], cart_points, angle=theta)
-    colormap = np.zeros(points.shape[0])
+    colormap = np.zeros(polar_points.shape[0])
     colormap[random_idx] = 1
 
     sizes = []
@@ -77,10 +138,8 @@ def plot_tree(sc_data):
         size = summary[j * 4 + 2 + 1]
         sizes.append(int(size))
 
-    fig = plt.figure()
-    ax = fig.add_subplot(projection='polar')
-    ax.scatter(points[:, 1], points[:, 0], linewidth=0.5, marker='.', c='lightgray', zorder=-10, s=2)
-    ax.scatter(points[random_idx, 1], points[random_idx, 0], marker='x', c='#E31A1C', zorder=10)
+    ax.scatter(polar_points[:, 1], polar_points[:, 0], linewidth=0.5, marker='.', c='lightgray', zorder=-10, s=2)
+    ax.scatter(polar_points[random_idx, 1], polar_points[random_idx, 0], marker='x', c='#E31A1C', zorder=10)
 
     summarized = set()
 
@@ -155,11 +214,52 @@ def plot_tree(sc_data):
     ax.set_thetagrids(thetagrids)
     ax.grid(True)
 
-    plt.tight_layout()
-    plt.savefig("c_elegans.png", dpi=500)
-    print("done")
+
+def plot_embedding(points, labels, ax):
+
+    df = pd.DataFrame({"x": points[:, 0], "y": points[:, 1]})
+
+    point_size = 2
+    font_size = 5
+    alpha = 1.0
+
+    sns.scatterplot(
+        data=df,
+        x="x",
+        y="y",
+        hue=labels,
+        hue_order=np.unique(labels),
+        palette=c_elegans_palette,
+        alpha=alpha,
+        edgecolor="none",
+        ax=ax,
+        s=point_size,
+        legend=False
+    )
+
+    circle = plt.Circle((0, 0), radius=1, fc='none', color='black')
+    ax.add_patch(circle)
+    ax.plot(0, 0, '.', c=(0, 0, 0), ms=4)
+
+    # fig.tight_layout()
+    ax.axis('off')
+    ax.axis('equal')
+
+    ax.set_ylim([-0.94, 0.94])
+    ax.set_xlim([-0.94, 0.94])
 
 
 if __name__ == '__main__':
-    # TODO Add the path the embedding file
-    plot_tree(np.load("c_elegans.npy"))
+    fig = plt.figure()
+    ax1 = plt.subplot(121, projection='polar')
+    ax2 = plt.subplot(122)
+
+    points = np.load("../teaser_files/c_elegans_embedding.npy")
+    labels = np.load("../teaser_files/c_elegans_labels.npy", allow_pickle=True)
+
+    plot_tree(points, ax1)
+    plot_embedding(points, labels, ax2)
+
+    plt.tight_layout()
+
+    plt.savefig("../teaser_files/c_elegans_embedding.png")
