@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 This repository contains the code for the paper:
-> Skrodzki, M., van Geffen, H., Chaves-de-Plaza, N.F., Höllt, T., Eisemann, E. and Hildebrandt, K., Accelerating hyperbolic t-SNE, 2024, IEEE TCVG (under revision).
+> Skrodzki, M., van Geffen, H., Chaves-de-Plaza, N.F., Höllt, T., Eisemann, E. and Hildebrandt, K., Accelerating hyperbolic t-SNE, 2024, IEEE TCVG (in publication).
 
 ![teaser of the paper](teaser.png)
 
@@ -26,27 +26,26 @@ If you use our code in your publications please consider citing:
 
 ## Setup
 
-1. Install a conda (we recommend using [miniconda](https://docs.conda.io/projects/miniconda/en/latest/))
+You can setup the repository by building the provided Docker file calling `docker build --tag 'hyperbolic-tsne' .` in the folder where you cloned the repository. Alternatively, you can perform the following steps yourself:
+
+1. Install conda (we recommend using [miniconda](https://docs.conda.io/projects/miniconda/en/latest/))
 2. Create environment: `conda create --name=htsne python=3.9.16`
 3. Activate environment: `conda activate htsne`
 4. Install dependencies with pip: `pip install -r requirements.txt`
 5. Build Cython extensions: `python setup.py build_ext --inplace`
 6. Install hyperbolic-tsne package: `pip install .`
 7. To test installation run `python -c "from hyperbolicTSNE import HyperbolicTSNE"`. No errors should be raised and you should see the output `Please note that 'empty_sequence' uses the KL divergence with Barnes-Hut approximation (angle=0.5) by default.`.
+8. To re-create the teaser image of this repository, run `python experiments_and_plots/plot_tree_teaser.py` which will read the embedding data and labels from the `teaser_files` folder, plot the teaser image, and save it to the `teaser_files` folder.
 
 Note: on macOS, the build process of the Cython extensions might yield an error if it cannot find OpenMP.
 This error can be ignored and the package will still be correctly installed and able to run. 
-The main consequence of this error is that the optimization iterations are going to run slower.
-
-After a successful installation of the repository's requirements, there are two ways to get started. 
-First, `example_basic_usage.ipynb` offers a step-by-step guide showing how to use the `HyperbolicTSNE` package to embed a high-dimensional dataset. 
-Second, the `example_different_params.py` script shows how to setup a script for quick experimentation. In this case, to compare the effect of different parameters.
+The main consequence of this error is that the optimization iterations run slower.
 
 ## Data
 
 You can run hyperbolic TSNE on your high-dimensional data. 
 Nevertheless, the examples and experiments in this repository rely on specific datasets. 
-Below, we provide downloading and processing instructions for each. 
+Below, we provide download links for each. 
 We recommend putting all datasets in a `datasets` directory at the root of this repository.
 The `load_data` function expects this path (`data_home`) to resolve the dataset.
 
@@ -60,7 +59,7 @@ Individual instructions per dataset:
 
 ## First steps
 
-There are two ways of getting stated with the `hyperbolicTSNE` package after setting it up.
+There are two ways of getting started with the `hyperbolicTSNE` package.
 First, `example_basic_usage.ipynb` offers a step-by-step guide showing how to use the HyperbolicTSNE package to embed a high-dimensional dataset. 
 Second, the `example_different_params.py` script shows how to set up a script for quick experimentation. In this case, to compare the effect of different parameters.
 
@@ -79,7 +78,7 @@ The general workflow to reproduce the results from the paper is:
 Note that the data generation scripts assume a top-level folder, i.e., a folder next to "examples", "experiments", etc., called "datasets" that holds the datasets to be embedded.
 
 ## License and third-party software
-The source code in this repository is released under the MIT License. However, all used third-party software libraries are governed by their own respective licenes. Without the following libraries, this project would have been considerably harder: 
+The source code in this repository is released under the MIT License. However, all used third-party software libraries are governed by their respective licenses. Without the following libraries, this project would have been considerably harder: 
 [scipy](https://scipy.org),
 [numpy](https://numpy.org),
 [scikit-learn](https://scikit-learn.org/stable/),
