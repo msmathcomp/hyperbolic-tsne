@@ -473,10 +473,5 @@ def gradient_descent(
                           (i + 1, emb_point_dists))
                 print("4")
                 break
-    # FIXME Is this logging necessary as log iteration is called above already for all iterations?!
-    # if logging:
-    #     log_iteration(logging_dict, logging_key, i, y, n_samples, n_components,
-    #                   cf=cf, cf_params=cf_params,
-    #                   log_arrays=log_arrays, log_arrays_ids=log_arrays_ids)
 
     return y.reshape(n_samples, n_components), error, total_its - start_it

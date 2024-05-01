@@ -155,4 +155,4 @@ def hyperbolic_nearest_neighbor_preservation(X, Y, k_start=1, k_max=15, D_X=None
     elif to_return == "full":
         return thresholds, precisions, recalls, nums_true_positives
     else:
-        raise("Unknown value for parameter `to_return`: " + str(to_return))
+        raise ("Unknown value for parameter `to_return`: " + str(to_return))

@@ -304,7 +304,7 @@ class SequentialOptimizer:
             A positive number, if the cost function goes below this, the solver stops.
         threshold_its : int, optional (default: -1)
             A positive number, if the solver performs this number of iterations, it stops.
-        threshold_check_size : float, optinoal (default: -1)
+        threshold_check_size : float, optional (default: -1)
             A positive number, providing the size to which to scale the current embedding when checking its error.
         verbose_solver: int, optional (default: 0)
             A positive or zero integer, indicating how verbose the solver should be.
@@ -367,7 +367,7 @@ class SequentialOptimizer:
             A positive number, if the cost function goes below this, the solver stops.
         threshold_its : int, optional (default: -1)
             A positive number, if the solver performs this number of iterations, it stops.
-        threshold_check_size : float, optinoal (default: -1)
+        threshold_check_size : float, optional (default: -1)
             A positive number, providing the size to which to scale the current embedding when checking its error.
         vanilla: bool, optional (default: True)
             If True, then vanilla gradient descent with a constant learning rate is used.

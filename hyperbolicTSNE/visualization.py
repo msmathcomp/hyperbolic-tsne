@@ -27,64 +27,68 @@ def plot_poincare(points, labels=None):
 
 
 color_dict = defaultdict(lambda: "tab10")
-color_dict[Datasets.C_ELEGANS] = {'ABarpaaa_lineage': '#91003f',  # embryonic lineage
-                       'Germline': '#7f2704',
-                       # Somatic gonad precursor cell
-                       'Z1_Z4': '#800026',
 
-                       # Two embryonic hypodermal cells that may provide a scaffold for the early organization of ventral bodywall muscles
-                       'XXX': '#fb8072',
+color_dict[Datasets.C_ELEGANS] = {
+    'ABarpaaa_lineage': '#91003f',  # embryonic lineage
+    'Germline': '#7f2704',
+    # Somatic gonad precursor cell
+    'Z1_Z4': '#800026',
 
-                       'Ciliated_amphid_neuron': '#c51b8a', 'Ciliated_non_amphid_neuron': '#fa9fb5',
+    # Two embryonic hypodermal cells that may provide a scaffold for the early organization of ventral bodywall muscles
+    'XXX': '#fb8072',
 
-                       # immune
-                       'Coelomocyte': '#ffff33', 'T': '#54278f',
+    'Ciliated_amphid_neuron': '#c51b8a', 'Ciliated_non_amphid_neuron': '#fa9fb5',
 
-                       # Exceratory
-                       'Excretory_cell': '#004529',
-                       'Excretory_cell_parent': '#006837',
-                       'Excretory_duct_and_pore': '#238443',
-                       'Parent_of_exc_duct_pore_DB_1_3': '#41ab5d',
-                       'Excretory_gland': '#78c679',
-                       'Parent_of_exc_gland_AVK': '#addd8e',
-                       'Rectal_cell': '#d9f0a3',
-                       'Rectal_gland': '#f7fcb9',
-                       'Intestine': '#7fcdbb',
+    # immune
+    'Coelomocyte': '#ffff33', 'T': '#54278f',
 
-                       # esophagus, crop, gizzard (usually) and intestine
-                       'Pharyngeal_gland': '#fed976',
-                       'Pharyngeal_intestinal_valve': '#feb24c',
-                       'Pharyngeal_marginal_cell': '#fd8d3c',
-                       'Pharyngeal_muscle': '#fc4e2a',
-                       'Pharyngeal_neuron': '#e31a1c',
+    # Exceratory
+    'Excretory_cell': '#004529',
+    'Excretory_cell_parent': '#006837',
+    'Excretory_duct_and_pore': '#238443',
+    'Parent_of_exc_duct_pore_DB_1_3': '#41ab5d',
+    'Excretory_gland': '#78c679',
+    'Parent_of_exc_gland_AVK': '#addd8e',
+    'Rectal_cell': '#d9f0a3',
+    'Rectal_gland': '#f7fcb9',
+    'Intestine': '#7fcdbb',
 
-                       # hypodermis (epithelial)
-                       'Parent_of_hyp1V_and_ant_arc_V': '#a8ddb5',
-                       'hyp1V_and_ant_arc_V': '#ccebc5',
-                       'Hypodermis': '#253494',
-                       'Seam_cell': '#225ea8',
-                       'Arcade_cell': '#1d91c0',
+    # esophagus, crop, gizzard (usually) and intestine
+    'Pharyngeal_gland': '#fed976',
+    'Pharyngeal_intestinal_valve': '#feb24c',
+    'Pharyngeal_marginal_cell': '#fd8d3c',
+    'Pharyngeal_muscle': '#fc4e2a',
+    'Pharyngeal_neuron': '#e31a1c',
 
-                       # set of six cells that form a thin cylindrical sheet between pharynx and ring neuropile
-                       'GLR': '#1f78b4',
+    # hypodermis (epithelial)
+    'Parent_of_hyp1V_and_ant_arc_V': '#a8ddb5',
+    'hyp1V_and_ant_arc_V': '#ccebc5',
+    'Hypodermis': '#253494',
+    'Seam_cell': '#225ea8',
+    'Arcade_cell': '#1d91c0',
 
-                       # Glia, also called glial cells or neuroglia, are non-neuronal cells in the central nervous system
-                       'Glia': '#377eb8',
+    # set of six cells that form a thin cylindrical sheet between pharynx and ring neuropile
+    'GLR': '#1f78b4',
 
-                       # head mesodermal cell: the middle layer of cells or tissues of an embryo
-                       'Body_wall_muscle': '#9e9ac8',
-                       'hmc': '#54278f',
-                       'hmc_and_homolog': '#02818a',
-                       'hmc_homolog': '#bcbddc',
-                       'Intestinal_and_rectal_muscle': '#41b6c4',
-                       # Postembryonic mesoblast: the mesoderm of an embryo in its earliest stages.
-                       'M_cell': '#3f007d',
+    # Glia, also called glial cells or neuroglia, are non-neuronal cells in the central nervous system
+    'Glia': '#377eb8',
 
-                       # pharyngeal gland cel
-                       'G2_and_W_blasts': '#abdda4',
+    # head mesodermal cell: the middle layer of cells or tissues of an embryo
+    'Body_wall_muscle': '#9e9ac8',
+    'hmc': '#54278f',
+    'hmc_and_homolog': '#02818a',
+    'hmc_homolog': '#bcbddc',
+    'Intestinal_and_rectal_muscle': '#41b6c4',
+    # Postembryonic mesoblast: the mesoderm of an embryo in its earliest stages.
+    'M_cell': '#3f007d',
 
-                       'unannotated': '#969696',
-                       'not provided': '#969696'}
+    # pharyngeal gland cel
+    'G2_and_W_blasts': '#abdda4',
+
+    'unannotated': '#969696',
+    'not provided': '#969696'
+}
+
 color_dict[Datasets.PLANARIA] = {'neoblast 1': '#CCCCCC',
                        'neoblast 2': '#7f7f7f',
                        'neoblast 3': '#E6E6E6',
@@ -163,6 +167,7 @@ color_dict[Datasets.PLANARIA] = {'neoblast 1': '#CCCCCC',
                        '14Mo': '#4eb3d3', '15Mo': '#7bccc4',
                        '16Neu': '#6a51a3', '17Neu': '#3f007d',
                        'root': '#000000'}
+
 color_dict[Datasets.MYELOID] = {'branchNe': '#4292c6', 'neutrophil': '#08306b',
                     'branchMo': '#9e9ac8', 'monocyte': '#54278f',
                     'branchEr': '#fc9272', 'erythrocyt': '#cb181d',
@@ -180,9 +185,6 @@ legend_bbox_dict[Datasets.C_ELEGANS] = (1.3, 0.5)
 def myeloid_labels(data_home = Path("../datasets/")):
     full_path = Path.joinpath(data_home, "myeloid-progenitors")
 
-    X = np.loadtxt(str(Path.joinpath(full_path, "MyeloidProgenitors.csv")), delimiter=",", skiprows=1,
-                   usecols=np.arange(11))
-
     return np.loadtxt(str(Path.joinpath(full_path, "MyeloidProgenitors.csv")), delimiter=",", skiprows=1, usecols=11,
                       dtype=str)
 
@@ -192,7 +194,6 @@ def c_elegans_labels(data_home = Path("../datasets/")):
     full_path = Path.joinpath(data_home, "c_elegans")
 
     ad_obj = ad.read_h5ad(str(Path.joinpath(full_path, "packer2019.h5ad")))
-    X = ad_obj.X
 
     return np.array(ad_obj.obs.cell_type)
 
@@ -233,6 +234,7 @@ def mnist_labels(data_home = Path("../datasets/")):
 
 
 def save_poincare_teaser(points, file_name, str_labels=None, dataset=None, save_fig_kwargs=dict()):
+    labels_dict = dict()
 
     df = pd.DataFrame({"x": points[:, 0], "y": points[:, 1]})
 
@@ -323,3 +325,56 @@ def animate(log_dict, labels, file_name, fast=False, is_hyperbolic=True, plot_ee
     plt.clf()
     plt.close()
     pbar.close()
+
+
+def plot_c_elegans_teaser():
+
+    points = np.load("teaser_files/c_elegans_embedding.npy")
+    labels = np.load("teaser_files/c_elegans_labels.npy", allow_pickle=True)
+
+    df = pd.DataFrame({"x": points[:, 0], "y": points[:, 1]})
+
+    fig, ax = plt.subplots()
+
+    point_size = 2
+    font_size = 5
+    alpha = 1.0
+
+    sns.scatterplot(
+        data=df,
+        x="x",
+        y="y",
+        hue=labels,
+        hue_order=np.unique(labels),
+        palette=color_dict[Datasets.C_ELEGANS],
+        alpha=alpha,
+        edgecolor="none",
+        ax=ax,
+        s=point_size
+    )
+
+    lgd = ax.legend(
+        fontsize=font_size,
+        loc='right',
+        bbox_to_anchor=legend_bbox_dict[Datasets.C_ELEGANS],
+        facecolor='white',
+        frameon=False,
+        ncol=1
+    )
+
+    circle = plt.Circle((0, 0), radius=1, fc='none', color='black')
+    ax.add_patch(circle)
+    ax.plot(0, 0, '.', c=(0, 0, 0), ms=4)
+
+    fig.tight_layout()
+    ax.axis('off')
+    ax.axis('equal')
+
+    ax.set_ylim([-1.01, 1.01])
+    ax.set_xlim([-1.01, 1.01])
+
+    plt.tight_layout()
+
+    plt.savefig(
+        "teaser_files/c_elegans_embedding.png", bbox_extra_artists=(lgd,), bbox_inches='tight'
+    )
