@@ -17,4 +17,4 @@ RUN conda run -n htsne python setup.py build_ext --inplace \
  && conda run -n htsne pip install .
 
 # Run Teaser plot script
-RUN conda run -n htsne python experiments_and_plots/plot_tree_teaser.py
+RUN conda run -n htsne --cwd experiments_and_plots python plot_tree_teaser.py
