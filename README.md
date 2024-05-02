@@ -26,7 +26,7 @@ If you use our code in your publications please consider citing:
 
 ## Setup
 
-You can setup the repository by building the provided Docker file calling `docker build --tag 'hyperbolic-tsne' .` in the folder where you cloned the repository. Alternatively, you can perform the following steps yourself:
+You can set up the repository by building the provided Docker file calling `docker build --tag 'hyperbolic-tsne' .` in the folder where you cloned the repository. Alternatively, you can perform the following steps yourself:
 
 1. Install conda (we recommend using [miniconda](https://docs.conda.io/projects/miniconda/en/latest/))
 2. Create environment: `conda create --name=htsne python=3.9.16`
@@ -37,9 +37,16 @@ You can setup the repository by building the provided Docker file calling `docke
 7. To test installation run `python -c "from hyperbolicTSNE import HyperbolicTSNE"`. No errors should be raised and you should see the output `Please note that 'empty_sequence' uses the KL divergence with Barnes-Hut approximation (angle=0.5) by default.`.
 8. To re-create the teaser image of this repository, run `python experiments_and_plots/plot_tree_teaser.py` which will read the embedding data and labels from the `teaser_files` folder, plot the teaser image, and save it to the `teaser_files` folder.
 
-Note: on macOS, the build process of the Cython extensions might yield an error if it cannot find OpenMP.
+Note 1: 
+On macOS, the build process of the Cython extensions might yield an error if it cannot find OpenMP.
 This error can be ignored and the package will still be correctly installed and able to run. 
 The main consequence of this error is that the optimization iterations run slower.
+
+Note 2:
+When replicating the teaser image of the repository, depending on your random choice, the image you create might highlight a different point in the left embedding than what is shown in the teaser.
+We encourage you to change the seed and render several such images.
+The right-hand side will always show the same embedding, but the left-hand side will give you the query structure of the tree for different vertices.
+Thereby, you can see which regions are approximated (showing larger cells of the polar quadtree) and which are drilling down to the individual points (showing smaller cells of the polar quadtree).
 
 ## Data
 
