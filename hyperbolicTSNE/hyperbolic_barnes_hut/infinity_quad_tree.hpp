@@ -10,7 +10,7 @@
 class InfinityQuadTree {
 public: 
     InfinityQuadTree(std::vector<Point>& points) {
-        rec_build_tree(points.begin(), points.end(), Point{-1, -1}, Point{1, 1}, 0, 0);
+        rec_build_tree(points.begin(), points.end(), Point{-1, -1}, Point{1, 1}, 0);
     }
     InfinityQuadTree() {}
 
@@ -23,19 +23,19 @@ public:
     }
 
 private:
-    size_t rec_build_tree(const std::vector<Point>::iterator& begin_points, const std::vector<Point>::iterator& end_points, const Point& min_bounds, const Point& max_bounds, size_t parent, size_t depth){
+    size_t rec_build_tree(const std::vector<Point>::iterator& begin_points, const std::vector<Point>::iterator& end_points, const Point& min_bounds, const Point& max_bounds, size_t depth){
         if (begin_points == end_points)
             return 0;
 
         Point bb_center{(max_bounds.x + min_bounds.x) / 2, (max_bounds.y + min_bounds.y) / 2};
 
-        size_t result_idx = _nodes.size();
-        _nodes.emplace_back(Cell(parent, depth, min_bounds, max_bounds));
-
         // If only 1 point left - it's a leaf
         if (begin_points + 1 == end_points) {
             // Unless the square is not within a unit circle completely
             if (isBoxWithinUnitCircle(min_bounds, max_bounds)) {
+                size_t result_idx = _nodes.size();
+                _nodes.emplace_back(Cell(depth, min_bounds, max_bounds));
+
                 _nodes[result_idx].is_leaf = true;
                 _nodes[result_idx].lorentz_factor = hyperbolic_utils::lorentz_factor((*begin_points).to_klein().sq_norm()); 
                 _nodes[result_idx].barycenter = (*begin_points);
@@ -43,22 +43,29 @@ private:
                 return result_idx;
             }
         }
-        
         // Split the points based on their location
         auto split_y = std::partition(begin_points, end_points, [bb_center](Point a){ return a.y < bb_center.y; });
         auto split_x_lower = std::partition(begin_points, split_y, [bb_center](Point a){ return a.x < bb_center.x; });
         auto split_x_upper = std::partition(split_y, end_points, [bb_center](Point a){ return a.x < bb_center.x; });
 
         // Recursively call on created partitions
-        _nodes[result_idx].children_idx[0] = rec_build_tree(split_y, split_x_upper, Point{min_bounds.x, bb_center.y}, Point{bb_center.x, max_bounds.y}, result_idx, depth + 1);
-        _nodes[result_idx].children_idx[1] = rec_build_tree(split_x_upper, end_points, bb_center, max_bounds, result_idx, depth + 1);
-        _nodes[result_idx].children_idx[2] = rec_build_tree(begin_points, split_x_lower, min_bounds, bb_center, result_idx, depth + 1);
-        _nodes[result_idx].children_idx[3] = rec_build_tree(split_x_lower, split_y, Point{bb_center.x, min_bounds.y}, Point{max_bounds.x, bb_center.y}, result_idx, depth + 1);
+        size_t child0_idx = rec_build_tree(split_y, split_x_upper, Point{min_bounds.x, bb_center.y}, Point{bb_center.x, max_bounds.y}, depth + 1);
+        size_t child1_idx = rec_build_tree(split_x_upper, end_points, bb_center, max_bounds, depth + 1);
+        size_t child2_idx = rec_build_tree(begin_points, split_x_lower, min_bounds, bb_center, depth + 1);
+        size_t child3_idx = rec_build_tree(split_x_lower, split_y, Point{bb_center.x, min_bounds.y}, Point{max_bounds.x, bb_center.y}, depth + 1);
+    
+        size_t only_child = std::max(std::max(child0_idx, child1_idx), std::max(child2_idx, child3_idx));
+        if (child0_idx + child1_idx + child2_idx + child3_idx == only_child) {
+            return only_child;
+        }
 
-        size_t child0_idx = _nodes[result_idx].children_idx[0];
-        size_t child1_idx = _nodes[result_idx].children_idx[1];
-        size_t child2_idx = _nodes[result_idx].children_idx[2];
-        size_t child3_idx = _nodes[result_idx].children_idx[3];
+        size_t result_idx = _nodes.size();
+        _nodes.emplace_back(Cell(depth, min_bounds, max_bounds));
+
+        _nodes[result_idx].children_idx[0] = child0_idx;
+        _nodes[result_idx].children_idx[1] = child1_idx;
+        _nodes[result_idx].children_idx[2] = child2_idx;
+        _nodes[result_idx].children_idx[3] = child3_idx;
 
         // If child_idx is 0, it means that there is no child in that sector of the cell
         double new_lorentz_factor = (child0_idx == 0 ? 0 : _nodes[child0_idx].lorentz_factor)

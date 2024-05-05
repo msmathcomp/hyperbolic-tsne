@@ -970,7 +970,6 @@ cdef double exact_compute_gradient(float[:] timings,
                             np.int64_t[:] neighbors,
                             np.int64_t[:] indptr,
                             double[:, :] tot_force,
-                            _QuadTree qt,
                             InfinityQuadTree iqt,
                             float theta,
                             int dof,
@@ -984,7 +983,7 @@ cdef double exact_compute_gradient(float[:] timings,
         long i, coord
         int ax
         long n_samples = pos_reference.shape[0]
-        int n_dimensions = qt.n_dimensions
+        int n_dimensions = 2
         double sQ
         double error
         clock_t t1 = 0, t2 = 0
@@ -994,7 +993,7 @@ cdef double exact_compute_gradient(float[:] timings,
 
     if TAKE_TIMING:
         t1 = clock()
-    sQ = exact_compute_gradient_negative(pos_reference, neighbors, indptr, neg_f, qt, iqt, dof, theta, start,
+    sQ = exact_compute_gradient_negative(pos_reference, neighbors, indptr, neg_f, iqt, dof, theta, start,
                                    stop, num_threads)
 
     if TAKE_TIMING:
@@ -1006,7 +1005,7 @@ cdef double exact_compute_gradient(float[:] timings,
 
     error = compute_gradient_positive(val_P, pos_reference, neighbors, indptr,
                                       pos_f, n_dimensions, dof, sQ, start,
-                                      qt.verbose, compute_error, num_threads)
+                                      10, compute_error, num_threads)
 
     if TAKE_TIMING:
         t2 = clock()
@@ -1028,7 +1027,6 @@ cdef double exact_compute_gradient_negative(double[:, :] pos_reference,
                                       np.int64_t[:] neighbors,
                                       np.int64_t[:] indptr,
                                       double* neg_f,
-                                      _QuadTree qt,
                                       InfinityQuadTree iqt,
                                       int dof,
                                       float theta,
@@ -1037,7 +1035,7 @@ cdef double exact_compute_gradient_negative(double[:, :] pos_reference,
                                       int num_threads) nogil:
     cdef:
         int ax
-        int n_dimensions = qt.n_dimensions
+        int n_dimensions = 2
         int offset = n_dimensions + 2
         long i, j, k, idx
         long n = stop - start
@@ -1086,7 +1084,6 @@ cdef double compute_gradient(float[:] timings,
                             np.int64_t[:] neighbors,
                             np.int64_t[:] indptr,
                             double[:, :] tot_force,
-                            _QuadTree qt,
                             InfinityQuadTree iqt,
                             float theta,
                             int dof,
@@ -1100,7 +1097,7 @@ cdef double compute_gradient(float[:] timings,
         long i, coord
         int ax
         long n_samples = pos_reference.shape[0]
-        int n_dimensions = qt.n_dimensions
+        int n_dimensions = 2
         double sQ
         double error
         clock_t t1 = 0, t2 = 0
@@ -1112,7 +1109,7 @@ cdef double compute_gradient(float[:] timings,
         t1 = clock()
     # sQ = compute_gradient_negative(pos_reference, neighbors, indptr, neg_f, qt, dof, theta, start,
     #                                stop, num_threads)
-    sQ = compute_gradient_negative(pos_reference, neg_f, qt, iqt, dof, theta, start,
+    sQ = compute_gradient_negative(pos_reference, neg_f, iqt, dof, theta, start,
                                    stop, num_threads)
     if TAKE_TIMING:
         t2 = clock()
@@ -1123,7 +1120,7 @@ cdef double compute_gradient(float[:] timings,
 
     error = compute_gradient_positive(val_P, pos_reference, neighbors, indptr,
                                       pos_f, n_dimensions, dof, sQ, start,
-                                      qt.verbose, compute_error, num_threads)
+                                      10, compute_error, num_threads)
 
     if TAKE_TIMING:
         t2 = clock()
@@ -1194,7 +1191,6 @@ cdef double compute_gradient_positive(double[:] val_P,
 
 cdef double compute_gradient_negative(double[:, :] pos_reference,
                                       double* neg_f,
-                                      _QuadTree qt,
                                       InfinityQuadTree iqt,
                                       int dof,
                                       float theta,
@@ -1205,7 +1201,7 @@ cdef double compute_gradient_negative(double[:, :] pos_reference,
         stop = pos_reference.shape[0]
     cdef:
         int ax
-        int n_dimensions = qt.n_dimensions
+        int n_dimensions = 2
         int offset = n_dimensions + 2
         long i, j, idx
         long n = stop - start
@@ -1309,7 +1305,6 @@ def gradient(float[:] timings,
              bint grad_fix=0):
     cdef double C
     cdef int n
-    cdef _QuadTree qt = _QuadTree(pos_output.shape[1], verbose)
     cdef vector[Point] iqt_initialization
     cdef InfinityQuadTree infinity_qt
     cdef clock_t t1 = 0, t2 = 0
@@ -1341,11 +1336,11 @@ def gradient(float[:] timings,
         t1 = clock()
     if exact:
         C = exact_compute_gradient(timings, val_P, pos_output, neighbors, indptr, forces,
-                             qt, infinity_qt, theta, dof, skip_num_points, -1, compute_error,
+                             infinity_qt, theta, dof, skip_num_points, -1, compute_error,
                              num_threads)
     else:
         C = compute_gradient(timings, val_P, pos_output, neighbors, indptr, forces,
-                             qt, infinity_qt, theta, dof, skip_num_points, -1, compute_error,
+                              infinity_qt, theta, dof, skip_num_points, -1, compute_error,
                              num_threads)
     if TAKE_TIMING:
         t2 = clock()

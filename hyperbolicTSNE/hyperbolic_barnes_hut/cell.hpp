@@ -20,8 +20,8 @@ struct Cell{
     Point barycenter;
     double lorentz_factor;
 
-    Cell(size_t parent_idx_, size_t depth_, const Point& min_bounds_, const Point& max_bounds_) : 
-        parent_idx(parent_idx_), 
+    Cell(size_t depth_, const Point& min_bounds_, const Point& max_bounds_) : 
+        parent_idx(0), 
         children_idx{{0, 0, 0, 0}}, 
         is_leaf(false), 
         cumulative_size(0), 
