@@ -13,6 +13,7 @@ from libc.math cimport sqrt, log, acosh, cosh, cos, sin, M_PI, atan2, tanh, atan
 from libc.stdlib cimport malloc, free, realloc
 from cython.parallel cimport prange, parallel
 from libc.string cimport memcpy
+from libcpp.vector cimport vector
 from libc.stdint cimport SIZE_MAX
 
 np.import_array()
@@ -970,6 +971,7 @@ cdef double exact_compute_gradient(float[:] timings,
                             np.int64_t[:] indptr,
                             double[:, :] tot_force,
                             _QuadTree qt,
+                            InfinityQuadTree iqt,
                             float theta,
                             int dof,
                             long start,
@@ -992,7 +994,7 @@ cdef double exact_compute_gradient(float[:] timings,
 
     if TAKE_TIMING:
         t1 = clock()
-    sQ = exact_compute_gradient_negative(pos_reference, neighbors, indptr, neg_f, qt, dof, theta, start,
+    sQ = exact_compute_gradient_negative(pos_reference, neighbors, indptr, neg_f, qt, iqt, dof, theta, start,
                                    stop, num_threads)
 
     if TAKE_TIMING:
@@ -1027,6 +1029,7 @@ cdef double exact_compute_gradient_negative(double[:, :] pos_reference,
                                       np.int64_t[:] indptr,
                                       double* neg_f,
                                       _QuadTree qt,
+                                      InfinityQuadTree iqt,
                                       int dof,
                                       float theta,
                                       long start,
@@ -1084,6 +1087,7 @@ cdef double compute_gradient(float[:] timings,
                             np.int64_t[:] indptr,
                             double[:, :] tot_force,
                             _QuadTree qt,
+                            InfinityQuadTree iqt,
                             float theta,
                             int dof,
                             long start,
@@ -1108,7 +1112,7 @@ cdef double compute_gradient(float[:] timings,
         t1 = clock()
     # sQ = compute_gradient_negative(pos_reference, neighbors, indptr, neg_f, qt, dof, theta, start,
     #                                stop, num_threads)
-    sQ = compute_gradient_negative(pos_reference, neg_f, qt, dof, theta, start,
+    sQ = compute_gradient_negative(pos_reference, neg_f, qt, iqt, dof, theta, start,
                                    stop, num_threads)
     if TAKE_TIMING:
         t2 = clock()
@@ -1191,6 +1195,7 @@ cdef double compute_gradient_positive(double[:] val_P,
 cdef double compute_gradient_negative(double[:, :] pos_reference,
                                       double* neg_f,
                                       _QuadTree qt,
+                                      InfinityQuadTree iqt,
                                       int dof,
                                       float theta,
                                       long start,
@@ -1206,14 +1211,18 @@ cdef double compute_gradient_negative(double[:, :] pos_reference,
         long n = stop - start
         long dta = 0
         long dtb = 0
-        double size, dist2s, mult
+        size_t size
+        double dist2s, mult
         double qijZ, sum_Q = 0.0
         double* force
         double* summary
         double* pos
         double* neg_force
-        # clock_t t1 = 0, t2 = 0, t3 = 0
-
+        int n_centers 
+        int center_of_mass_idx
+        CenterOfMass center_of_mass
+        clock_t t1 = 0, t2 = 0, t3 = 0
+        vector[CenterOfMass] results
 
     with nogil, parallel(num_threads=num_threads):
         # Define thread-local buffers
@@ -1221,6 +1230,7 @@ cdef double compute_gradient_negative(double[:, :] pos_reference,
         force = <double *> malloc(sizeof(double) * n_dimensions)
         pos = <double *> malloc(sizeof(double) * n_dimensions)
         neg_force = <double *> malloc(sizeof(double) * n_dimensions)
+        results = vector[CenterOfMass](0)
 
         for i in prange(start, stop, schedule='static'):
             # Clear the arrays
@@ -1231,26 +1241,25 @@ cdef double compute_gradient_negative(double[:, :] pos_reference,
 
             # Find which nodes are summarizing and collect their centers of mass
             # deltas, and sizes, into vectorized arrays
-            # if take_timing:
-            #     t1 = clock()
-            idx = qt.summarize(pos, summary, theta*theta)
-            # if take_timing:
-            #     t2 = clock()
+            t1 = clock()
+            #idx = qt.summarize(pos, summary, theta*theta)
+
+            iqt.approximate_centers_of_mass(pos_reference[i, 0], pos_reference[i, 1], theta*theta, results)
+
+            t2 = clock()
 
             # Compute the t-SNE negative force
             # for the digits dataset, walking the tree
             # is about 10-15x more expensive than the
             # following for loop
-            for j in range(idx // offset):
-
-                dist2s = summary[j * offset + n_dimensions]
-                size = summary[j * offset + n_dimensions + 1]
+            n_centers = results.size()
+            for center_of_mass_idx in range(n_centers):
+                center_of_mass = results[center_of_mass_idx]
+                dist2s = center_of_mass.distance_to_target
+                size = center_of_mass.number_of_accumulated_points
                 qijZ = 1. / (1. + dist2s)  # 1/(1+dist)
 
-                # if size > 1:
-                #     printf("[QuadTree] Size: %g, %g\n", dist2s, dist2s * size / dist2s)
-
-                sum_Q += size * qijZ   # size of the node * q
+                sum_Q += 1.0 * size * qijZ   # size of the node * q
 
                 if GRAD_FIX:
                     # New Fix
@@ -1259,24 +1268,24 @@ cdef double compute_gradient_negative(double[:, :] pos_reference,
                     # Old Solution
                     mult = size * qijZ * qijZ
 
-                for ax in range(n_dimensions):
-                    neg_force[ax] += mult * summary[j * offset + ax]
+                neg_force[0] += mult * center_of_mass.position.x
+                neg_force[1] += mult * center_of_mass.position.y
 
-            # if take_timing:
-            #     t3 = clock()
             for ax in range(n_dimensions):
                 neg_f[i * n_dimensions + ax] = neg_force[ax]
-            # if take_timing:
-            #     dta += t2 - t1
-            #     dtb += t3 - t2
+            
+            # t3 = clock()
+
+            # dta += t2 - t1
+            # dtb += t3 - t2
 
         free(force)
         free(pos)
         free(neg_force)
         free(summary)
-    # if take_timing:
-    #     printf("[t-SNE] Tree: %li clock ticks | ", dta)
-    #     printf("Force computation: %li clock ticks\n", dtb)
+
+        printf("[t-SNE] Tree: %li clock ticks | ", dta)
+        printf("Force computation: %li clock ticks\n", dtb)
 
     # Put sum_Q to machine EPSILON to avoid divisions by 0
     sum_Q = max(sum_Q, FLOAT64_EPS)
@@ -1301,7 +1310,10 @@ def gradient(float[:] timings,
     cdef double C
     cdef int n
     cdef _QuadTree qt = _QuadTree(pos_output.shape[1], verbose)
+    cdef vector[Point] iqt_initialization
+    cdef InfinityQuadTree infinity_qt
     cdef clock_t t1 = 0, t2 = 0
+    cdef n_samples = pos_output.shape[0]
 
     global AREA_SPLIT
     AREA_SPLIT = area_split
@@ -1313,7 +1325,13 @@ def gradient(float[:] timings,
         if TAKE_TIMING:
             t1 = clock()
 
-        qt.build_tree(pos_output)
+        #qt.build_tree(pos_output)
+        #########################
+        # Port points into a vector
+        for i in range(n_samples):
+            iqt_initialization.push_back(Point(pos_output[i, 0], pos_output[i, 1]))
+
+        infinity_qt = InfinityQuadTree(iqt_initialization)
 
         if TAKE_TIMING:
             t2 = clock()
@@ -1323,11 +1341,11 @@ def gradient(float[:] timings,
         t1 = clock()
     if exact:
         C = exact_compute_gradient(timings, val_P, pos_output, neighbors, indptr, forces,
-                             qt, theta, dof, skip_num_points, -1, compute_error,
+                             qt, infinity_qt, theta, dof, skip_num_points, -1, compute_error,
                              num_threads)
     else:
         C = compute_gradient(timings, val_P, pos_output, neighbors, indptr, forces,
-                             qt, theta, dof, skip_num_points, -1, compute_error,
+                             qt, infinity_qt, theta, dof, skip_num_points, -1, compute_error,
                              num_threads)
     if TAKE_TIMING:
         t2 = clock()
@@ -1336,3 +1354,41 @@ def gradient(float[:] timings,
     if not compute_error:
         C = np.nan
     return C
+
+###################################
+###################################
+
+cdef extern from "point.hpp":
+    cdef struct Point:
+        DTYPE_t x
+        DTYPE_t y
+
+cdef extern from "centre_of_mass.hpp":
+    cdef struct CenterOfMass:
+        Point position
+        SIZE_t number_of_accumulated_points
+        double distance_to_target
+
+cdef extern from "cell.hpp":
+    cdef struct Cell:
+        SIZE_t parent_idx
+
+        vector[SIZE_t] children_idx
+        bint is_leaf
+
+        Point barycenter
+        Point center
+
+        Point min_bounds
+        Point max_bounds
+
+        SIZE_t cumulative_size
+        SIZE_t depth
+        DTYPE_t lorentz_factor
+
+cdef extern from "infinity_quad_tree.hpp":
+    cdef cppclass InfinityQuadTree:
+        InfinityQuadTree() except +
+        InfinityQuadTree(vector[Point] points) except +
+        vector[Cell] get_nodes()
+        void approximate_centers_of_mass(DTYPE_t x, DTYPE_t y, double theta_sq, vector[CenterOfMass] combined_results) nogil except +
