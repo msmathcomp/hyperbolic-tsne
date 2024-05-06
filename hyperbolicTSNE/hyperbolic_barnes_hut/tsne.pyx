@@ -995,7 +995,7 @@ cdef double exact_compute_gradient(float[:] timings,
         t1 = clock()
     sQ = exact_compute_gradient_negative(pos_reference, neighbors, indptr, neg_f, iqt, dof, theta, start,
                                    stop, num_threads)
-
+    
     if TAKE_TIMING:
         t2 = clock()
         timings[2] = ((float) (t2 - t1)) / CLOCKS_PER_SEC
@@ -1266,7 +1266,7 @@ cdef double compute_gradient_negative(double[:, :] pos_reference,
                 neg_force[0] += mult * distance_grad(pos_reference[i, 0], pos_reference[i, 1], center_of_mass.position.x, center_of_mass.position.y, 0)
                 neg_force[1] += mult * distance_grad(pos_reference[i, 0], pos_reference[i, 1], center_of_mass.position.x, center_of_mass.position.y, 1)
 
-            for ax in range(n_dimensions):
+            for ax in range(2):
                 neg_f[i * n_dimensions + ax] = neg_force[ax]
             
             # t3 = clock()
@@ -1281,11 +1281,12 @@ cdef double compute_gradient_negative(double[:, :] pos_reference,
 
         #printf("[t-SNE] Tree: %li clock ticks | ", dta)
         #printf("Force computation: %li clock ticks\n", dtb)
-        #print("neg_f[0] ", neg_f[0])
-        #print("neg_f[1] ", neg_f[1])
+        printf("neg_f[0] %f\n", neg_f[0])
+        printf("neg_f[1] %f\n", neg_f[1])
 
     # Put sum_Q to machine EPSILON to avoid divisions by 0
     sum_Q = max(sum_Q, FLOAT64_EPS)
+    printf("END\n")
     return sum_Q
 
 def gradient(float[:] timings,
