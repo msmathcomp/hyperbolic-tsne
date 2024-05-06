@@ -1219,10 +1219,8 @@ cdef double compute_gradient_negative(double[:, :] pos_reference,
         CenterOfMass center_of_mass
         clock_t t1 = 0, t2 = 0, t3 = 0
         vector[CenterOfMass] results
-    printf("BEGIN")
     with nogil, parallel(num_threads=num_threads):
         # Define thread-local buffers
-        printf("something")
         summary = <double *> malloc(sizeof(double) * n * offset)
         force = <double *> malloc(sizeof(double) * n_dimensions)
         pos = <double *> malloc(sizeof(double) * n_dimensions)
@@ -1287,7 +1285,6 @@ cdef double compute_gradient_negative(double[:, :] pos_reference,
         #print("neg_f[1] ", neg_f[1])
 
     # Put sum_Q to machine EPSILON to avoid divisions by 0
-    printf("END")
     sum_Q = max(sum_Q, FLOAT64_EPS)
     return sum_Q
 
