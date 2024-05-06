@@ -6,6 +6,7 @@
 #include <stddef.h>
 #include <vector>
 #include <algorithm>
+#include <iostream>
 
 class InfinityQuadTree {
 public: 
@@ -20,6 +21,7 @@ public:
 
     void approximate_centers_of_mass(const double& x, const double& y, const double& theta_sq, std::vector<CenterOfMass>& combined_results) {
         approximate_centers_of_mass(Point{x,y}, 0, theta_sq, combined_results);
+        // std::cout << combined_results.size() << std::endl;
     }
 
 private:
@@ -95,6 +97,9 @@ private:
 
     void approximate_centers_of_mass(const Point& target, size_t cell_idx, double theta_sq, std::vector<CenterOfMass>& combined_results) {
         auto& current_cell = _nodes[cell_idx];
+
+        if (current_cell.is_leaf && std::fabs(target.x - current_cell.barycenter.x) < 1e-5 && std::fabs(target.y - current_cell.barycenter.y) < 1e-5) 
+            return;
 
         double distance_to_target = target.distance_to_point_poincare(_nodes[cell_idx].barycenter);
         double distance_squared = distance_to_target * distance_to_target;

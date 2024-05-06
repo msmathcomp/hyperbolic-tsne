@@ -1219,9 +1219,10 @@ cdef double compute_gradient_negative(double[:, :] pos_reference,
         CenterOfMass center_of_mass
         clock_t t1 = 0, t2 = 0, t3 = 0
         vector[CenterOfMass] results
-
+    printf("BEGIN")
     with nogil, parallel(num_threads=num_threads):
         # Define thread-local buffers
+        printf("something")
         summary = <double *> malloc(sizeof(double) * n * offset)
         force = <double *> malloc(sizeof(double) * n_dimensions)
         pos = <double *> malloc(sizeof(double) * n_dimensions)
@@ -1259,13 +1260,13 @@ cdef double compute_gradient_negative(double[:, :] pos_reference,
 
                 if GRAD_FIX:
                     # New Fix
-                    mult = size * qijZ * qijZ * sqrt(dist2s)
+                    mult = 1.0 * size * qijZ * qijZ * sqrt(dist2s)
                 else:
                     # Old Solution
-                    mult = size * qijZ * qijZ
+                    mult = 1.0 * size * qijZ * qijZ
 
-                neg_force[0] += mult * center_of_mass.position.x
-                neg_force[1] += mult * center_of_mass.position.y
+                neg_force[0] += mult * distance_grad(pos_reference[i, 0], pos_reference[i, 1], center_of_mass.position.x, center_of_mass.position.y, 0)
+                neg_force[1] += mult * distance_grad(pos_reference[i, 0], pos_reference[i, 1], center_of_mass.position.x, center_of_mass.position.y, 1)
 
             for ax in range(n_dimensions):
                 neg_f[i * n_dimensions + ax] = neg_force[ax]
@@ -1280,10 +1281,13 @@ cdef double compute_gradient_negative(double[:, :] pos_reference,
         free(neg_force)
         free(summary)
 
-        printf("[t-SNE] Tree: %li clock ticks | ", dta)
-        printf("Force computation: %li clock ticks\n", dtb)
+        #printf("[t-SNE] Tree: %li clock ticks | ", dta)
+        #printf("Force computation: %li clock ticks\n", dtb)
+        #print("neg_f[0] ", neg_f[0])
+        #print("neg_f[1] ", neg_f[1])
 
     # Put sum_Q to machine EPSILON to avoid divisions by 0
+    printf("END")
     sum_Q = max(sum_Q, FLOAT64_EPS)
     return sum_Q
 
