@@ -2,6 +2,7 @@
 #include "point.hpp"
 #include <stddef.h>
 #include <vector>
+#include <limits>
 
 struct Cell{
     size_t parent_idx;
@@ -16,6 +17,7 @@ struct Cell{
     Point max_bounds;
 
     double max_distance_within_squared;
+    bool contains_infinity;
 
     Point barycenter;
     double lorentz_factor;
@@ -38,8 +40,16 @@ struct Cell{
         */
 
         {
+            if (!hyperbolic_utils::isBoxWithinUnitCircle(min_bounds.x, min_bounds.y, max_bounds.x, max_bounds.y)) {
+                max_distance_within_squared = std::numeric_limits<double>::infinity();
+                contains_infinity = true;
+                return;
+            }
+
             Point a = Point{min_bounds.x, max_bounds.y};
             Point b = Point{min_bounds.y, max_bounds.x};
+
+            contains_infinity = false;
             max_distance_within_squared = fmax(
                 fmax(a.distance_to_point_poincare(b), min_bounds.distance_to_point_poincare(max_bounds)),
                 fmax(fmax(a.distance_to_point_poincare(min_bounds), min_bounds.distance_to_point_poincare(b)),

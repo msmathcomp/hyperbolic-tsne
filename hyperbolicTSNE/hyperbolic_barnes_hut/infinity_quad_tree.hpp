@@ -19,8 +19,8 @@ public:
         return _nodes;
     }
 
-    void approximate_centers_of_mass(const double& x, const double& y, const double& theta_sq, std::vector<CenterOfMass>& combined_results) {
-        approximate_centers_of_mass(Point{x,y}, 0, theta_sq, combined_results);
+    size_t approximate_centers_of_mass(const double& x, const double& y, const double& theta_sq, double* combined_results) const {
+        return approximate_centers_of_mass(Point{x,y}, 0, theta_sq, combined_results, 0);
         // std::cout << combined_results.size() << std::endl;
     }
 
@@ -88,34 +88,36 @@ private:
     }
 
     static bool isBoxWithinUnitCircle(const Point& min_bounds, const Point& max_bounds) {
-        double d1 = min_bounds.x*min_bounds.x + min_bounds.y*min_bounds.y;
-        double d2 = max_bounds.x*max_bounds.x + min_bounds.y*min_bounds.y;
-        double d3 = max_bounds.x*max_bounds.x + max_bounds.y*max_bounds.y;
-        double d4 = min_bounds.x*min_bounds.x + max_bounds.y*max_bounds.y;
-        return d1 < 1.0 && d2 < 1.0 && d3 < 1.0 && d4 < 1.0;
+        return hyperbolic_utils::isBoxWithinUnitCircle(min_bounds.x, min_bounds.y, max_bounds.x, max_bounds.y);
     }
 
-    void approximate_centers_of_mass(const Point& target, size_t cell_idx, double theta_sq, std::vector<CenterOfMass>& combined_results) {
+    size_t approximate_centers_of_mass(const Point& target, size_t cell_idx, double theta_sq, double* combined_results, size_t idx) const {
         auto& current_cell = _nodes[cell_idx];
 
         if (current_cell.is_leaf && std::fabs(target.x - current_cell.barycenter.x) < 1e-5 && std::fabs(target.y - current_cell.barycenter.y) < 1e-5) 
-            return;
+            return idx;
 
         double distance_to_target = target.distance_to_point_poincare(_nodes[cell_idx].barycenter);
         double distance_squared = distance_to_target * distance_to_target;
+        combined_results[cell_idx * 4 + 2] = distance_squared;
 
         // Check the stop condition
-        if (_nodes[cell_idx].is_leaf || (current_cell.max_distance_within_squared / distance_squared < theta_sq)) {
-            combined_results.emplace_back(CenterOfMass{_nodes[cell_idx].barycenter, _nodes[cell_idx].cumulative_size, distance_squared});
-            return;
+        if (_nodes[cell_idx].is_leaf || (!current_cell.contains_infinity && (current_cell.max_distance_within_squared / distance_squared < theta_sq))) {
+            combined_results[cell_idx*4] = _nodes[cell_idx].barycenter.x;
+            combined_results[cell_idx*4 + 1] = _nodes[cell_idx].barycenter.y;
+            combined_results[cell_idx*4 + 2] = distance_squared;
+            combined_results[cell_idx*4 + 3] = _nodes[cell_idx].cumulative_size;
+            return idx + 4;
         }
         
+        combined_results[cell_idx*4 + 3] = 0;
         // If stop condition wasn't triggered - go deeper and combine results
         for(int i = 0; i < 4; ++i) {
             if (_nodes[cell_idx].children_idx[i] != 0) {
-                approximate_centers_of_mass(target, _nodes[cell_idx].children_idx[i], theta_sq, combined_results);
+                idx = approximate_centers_of_mass(target, _nodes[cell_idx].children_idx[i], theta_sq, combined_results, idx);
             }
         }
+        return idx;
     }
 
     std::vector<Cell> _nodes;

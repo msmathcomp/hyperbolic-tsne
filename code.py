@@ -42,7 +42,7 @@ opt_config = dict(
     momentum=0.8,  # Set momentum during non-exaggerated gradient descent to 0.8
     exact=False,  # To use the quad tree for acceleration (like Barnes-Hut in the Euclidean setting) or to evaluate the gradient exactly
     area_split=False,  # To build or not build the polar quad tree based on equal area splitting or - alternatively - on equal length splitting
-    n_iter_check=10,  # Needed for early stopping criterion
+    n_iter_check=40,  # Needed for early stopping criterion
     size_tol=0.999  # Size of the embedding to be used as early stopping criterion
 )
 

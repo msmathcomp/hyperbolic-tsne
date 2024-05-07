@@ -1207,7 +1207,7 @@ cdef double compute_gradient_negative(double[:, :] pos_reference,
         long n = stop - start
         long dta = 0
         long dtb = 0
-        size_t size
+        double size
         double dist2s, mult
         double qijZ, sum_Q = 0.0
         double* force
@@ -1225,7 +1225,6 @@ cdef double compute_gradient_negative(double[:, :] pos_reference,
         force = <double *> malloc(sizeof(double) * n_dimensions)
         pos = <double *> malloc(sizeof(double) * n_dimensions)
         neg_force = <double *> malloc(sizeof(double) * n_dimensions)
-        results = vector[CenterOfMass](0)
 
         for i in prange(start, stop, schedule='static'):
             # Clear the arrays
@@ -1239,7 +1238,7 @@ cdef double compute_gradient_negative(double[:, :] pos_reference,
             t1 = clock()
             #idx = qt.summarize(pos, summary, theta*theta)
 
-            iqt.approximate_centers_of_mass(pos_reference[i, 0], pos_reference[i, 1], theta*theta, results)
+            idx = iqt.approximate_centers_of_mass(pos_reference[i, 0], pos_reference[i, 1], theta*theta, summary)
 
             t2 = clock()
 
@@ -1247,24 +1246,28 @@ cdef double compute_gradient_negative(double[:, :] pos_reference,
             # for the digits dataset, walking the tree
             # is about 10-15x more expensive than the
             # following for loop
-            n_centers = results.size()
-            for center_of_mass_idx in range(n_centers):
-                center_of_mass = results[center_of_mass_idx]
-                dist2s = center_of_mass.distance_to_target
-                size = center_of_mass.number_of_accumulated_points
+            for j in range(idx // 4):
+                dist2s = summary[j * offset + n_dimensions]
+                size = summary[j * offset + n_dimensions + 1]
                 qijZ = 1. / (1. + dist2s)  # 1/(1+dist)
 
-                sum_Q += 1.0 * size * qijZ   # size of the node * q
+                # if size > 1:
+                #     printf("[QuadTree] Size: %g, %g\n", dist2s, dist2s * size / dist2s)
+
+                sum_Q += size * qijZ   # size of the node * q
 
                 if GRAD_FIX:
                     # New Fix
-                    mult = 1.0 * size * qijZ * qijZ * sqrt(dist2s)
+                    mult = size * qijZ * qijZ * sqrt(dist2s)
                 else:
                     # Old Solution
-                    mult = 1.0 * size * qijZ * qijZ
+                    mult = size * qijZ * qijZ
 
-                neg_force[0] += mult * distance_grad(pos_reference[i, 0], pos_reference[i, 1], center_of_mass.position.x, center_of_mass.position.y, 0)
-                neg_force[1] += mult * distance_grad(pos_reference[i, 0], pos_reference[i, 1], center_of_mass.position.x, center_of_mass.position.y, 1)
+                for ax in range(n_dimensions):
+                    neg_force[ax] += mult * summary[j * offset + ax]
+
+                neg_force[0] += mult * distance_grad(pos_reference[i, 0], pos_reference[i, 1], summary[j * 4 + 0], summary[j * 4 + 1], 0)
+                neg_force[1] += mult * distance_grad(pos_reference[i, 0], pos_reference[i, 1], summary[j * 4 + 0], summary[j * 4 + 1], 1)
 
             for ax in range(2):
                 neg_f[i * n_dimensions + ax] = neg_force[ax]
@@ -1311,6 +1314,8 @@ def gradient(float[:] timings,
     cdef InfinityQuadTree infinity_qt
     cdef clock_t t1 = 0, t2 = 0
     cdef n_samples = pos_output.shape[0]
+    cdef a
+    cdef b
 
     global AREA_SPLIT
     AREA_SPLIT = area_split
@@ -1325,10 +1330,18 @@ def gradient(float[:] timings,
         #qt.build_tree(pos_output)
         #########################
         # Port points into a vector
+        iqt_initialization = vector[Point](0)
         for i in range(n_samples):
-            iqt_initialization.push_back(Point(pos_output[i, 0], pos_output[i, 1]))
+            a = sqrt(pos_output[i, 0] * pos_output[i, 0] + pos_output[i, 1] * pos_output[i, 1])
+            b = atan2(pos_output[i, 1], pos_output[i, 0])
+            b = b if b > 0 else b + 2 * M_PI
 
+            a = clamp(a, 0.0, 1 - BOUNDARY)
+            iqt_initialization.push_back(Point(a * cos(b), a*sin(b)))
+
+        printf("STARTED BUILDING\n")
         infinity_qt = InfinityQuadTree(iqt_initialization)
+        printf("FINISHED BUILDING\n")
 
         if TAKE_TIMING:
             t2 = clock()
@@ -1387,5 +1400,5 @@ cdef extern from "infinity_quad_tree.hpp":
     cdef cppclass InfinityQuadTree:
         InfinityQuadTree() except +
         InfinityQuadTree(vector[Point] points) except +
-        vector[Cell] get_nodes()
-        void approximate_centers_of_mass(DTYPE_t x, DTYPE_t y, double theta_sq, vector[CenterOfMass] combined_results) nogil except +
+        vector[Cell] get_nodes() nogil
+        SIZE_t approximate_centers_of_mass(DTYPE_t x, DTYPE_t y, double theta_sq, DTYPE_t* combined_results) nogil except +

@@ -1,5 +1,6 @@
 #pragma once
 #include "math_utils.hpp"
+#include <algorithm>
 
 struct Point {
     double x;
@@ -36,8 +37,8 @@ struct Point {
             return 0;
 
         double uv2 = ((x - b.x) * (x - b.x)) + ((y - b.y) * (y - b.y));
-        double u_sq = sq_norm();
-        double v_sq = b.sq_norm();
+        double u_sq = std::clamp(sq_norm(), 0.0, 1 - M_UTILS_EPSILON);
+        double v_sq = std::clamp(b.sq_norm(), 0.0, 1 - M_UTILS_EPSILON);
         double result = std::acosh( 1. + 2. * uv2 / ( (1. - u_sq) * (1. - v_sq)));
 
         return result;
