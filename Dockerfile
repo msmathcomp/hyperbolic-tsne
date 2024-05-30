@@ -12,6 +12,7 @@ WORKDIR /src
 
 # Create a Conda environment, install the requirements, build the acceleration structures and install them
 RUN conda create -y -n htsne python=3.9.16 
+RUN conda run -n htsne conda install h5py
 RUN conda run -n htsne pip install -r requirements.txt
 RUN conda run -n htsne python setup.py build_ext --inplace \
  && conda run -n htsne pip install .
