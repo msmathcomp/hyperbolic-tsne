@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 This repository contains the code for the paper:
-> Skrodzki, M., van Geffen, H., Chaves-de-Plaza, N.F., Höllt, T., Eisemann, E. and Hildebrandt, K., "Accelerating hyperbolic t-SNE", 2024, IEEE TCVG (2024).
+> Skrodzki, M., van Geffen, H., Chaves-de-Plaza, N.F., Höllt, T., Eisemann, E. and Hildebrandt, K., "Accelerating hyperbolic t-SNE", 2024, IEEE TCVG ([DOI: 10.1109/TVCG.2024.3364841](https://ieeexplore.ieee.org/document/10432970)).
 
 ![teaser of the paper](teaser.png)
 
