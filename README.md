@@ -26,7 +26,7 @@ Please find the published version of the paper [here](https://ieeexplore.ieee.or
 
 ## Setup
 
-To execute this setup procedure, we assume that you have a C++ compiler installed on your system that supports at least C++11.
+To execute this setup procedure, we assume that you have a C++ compiler installed on your system that supports at least C++11 and OpenMP.
 
 You can set up the repository by building the provided Docker file calling `docker build --tag 'hyperbolic-tsne' .` in the folder where you cloned the repository. Alternatively, you can perform the following steps yourself:
 
