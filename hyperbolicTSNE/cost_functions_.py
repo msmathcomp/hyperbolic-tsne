@@ -109,7 +109,8 @@ class HyperbolicKL:
                 "degrees_of_freedom": 1,
                 "skip_num_points": 0,
                 "num_threads": _openmp_effective_n_threads(),
-                "verbose": False
+                "verbose": False,
+                "grad_fix": False,       # tells the cost function calculation to use the correct gradient
             }
         }
 
@@ -129,8 +130,13 @@ class HyperbolicKL:
         """
         return {
             "method": "barnes-hut",
-            "params": {"angle": angle, "degrees_of_freedom": 1, "num_threads": _openmp_effective_n_threads(),
-                       "verbose": False}
+            "params": {
+                "angle": angle, 
+                "degrees_of_freedom": 1, 
+                "num_threads": _openmp_effective_n_threads(),
+                "verbose": False,
+                "grad_fix": False,       # tells the cost function calculation to use the correct gradient
+            }
         }
 
     #########################
