@@ -60,9 +60,9 @@ The `load_data` function expects this path (`data_home`) to resolve the dataset.
 
 Individual instructions per dataset:
 - [LUKK](https://www.ebi.ac.uk/biostudies/arrayexpress/studies/E-MTAB-62)
-- [MYELOID8000](https://github.com/scverse/scanpy_usage/tree/master/170430_krumsiek11)
-- [PLANARIA](https://shiny.mdc-berlin.de/psca/)
-- [MNIST](https://yann.lecun.com/exdb/mnist/)
+- [MYELOID8000](https://doi.org/10.1371/journal.pone.0022649) (Note that the infrastructure has changed since we originally ran this experiment, therefore we mirror the data as we have used it in the repository; you can find it in the top-level `datasets` folder. Please give credit to the original authors as indicated by the link.)
+- [PLANARIA](https://shiny.mdc-berlin.de/psca/) (Note: Click `downloads` and download the files `R_pca_seurat.txt`, `R_annotation.txt`, and `colors_dataset.txt` into the top-level folder `datasets\planaria`.)
+- [MNIST](https://www.kaggle.com/datasets/hojjatk/mnist-dataset)
 - [WORDNET](https://github.com/facebookresearch/poincare-embeddings)
 - [C_ELEGANS](https://github.com/Munfred/wormcells-data/releases)
 
