@@ -1,0 +1,26 @@
+Comment[ArrayExpressAccession]	E-MTAB-62
+Investigation Title	Human gene expression atlas of 5372 samples representing 369 different cell and tissue types, disease states and cell lines						
+Comment[Submitted Name]	Human gene expression atlas of 5372 samples representing 369 different cell and tissue types, disease states and cell lines
+Comment[ArrayExpressReleaseDate]	2010-08-04						
+Experiment Description	The experiment contains systematically annotated and consistently normalized human gene expression data matrix of 5372 samples integrated from 206 public experiments of a HG-U133A array platform. The dataset is a subset of a larger pool of 9004 samples gathered from ArrayExpress and GEO websites and checked for quality assessment and suitability for data co-analysis as described by Bolstad et al 2005. The sample annotations have been subject to semiautomatic curation and manual generalization of 369 biological groups which have been additionally organized into blood/non-blood, 14 and 15 meta-classes.						
+Experimental Design	co-expression_design	data_integration_design					
+Experimental Factor Name	4 meta-groups	15 meta-groups	369 groups	Blood-NonBlood meta-groups	6 meta-groups	4 groups from blood to incompletely diff	96 groups
+Experimental Factor Type	4 meta-groups	15 meta-groups	369 groups	Blood-NonBlood meta-groups	6 meta-groups	4 groups from blood to incompletely diff	96 groups
+Quality Control Type							
+Public Release Date	2010-08-04						
+Person Last Name	Lukk						
+Person First Name	Margus						
+Person Mid Initials							
+Person Email	mlukk@ebi.ac.uk						
+Person Phone							
+Person Address	Wellcome Trust Genome Campus, Hinxton, CB10 1sd						
+Person Affiliation	EBI																														
+Person Roles	submitter																														
+PubMed ID	20379172																														
+Publication Author List	Lukk M, Kapushesky M, Nikkila J, Parkinson H, Goncalves A, Huber W, Ukkonen E, Brazma A.																														
+Publication Title	A global map of human gene expression.																														
+Publication Status																															
+Protocol Name	P-MTAB-2072
+Protocol Type	bioassay_data_transformation																														
+Protocol Description	Feature extraction and data normalization was done using RMA in R Bioconductor.																														
+SDRF File	E-MTAB-62.sdrf.txt
