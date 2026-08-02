@@ -98,7 +98,7 @@ def gradient_descent(
         y0, cf, cf_params, *, start_it=0, n_iter=100, n_iter_check=np.inf, n_iter_without_progress=300,
         threshold_cf=0., threshold_its=-1, threshold_check_size=-1.,
         momentum=0.8, learning_rate=200.0, min_gain=0.01, vanilla=False, min_grad_norm=1e-7, error_tol=1e-9, size_tol=None,
-        verbose=0, rescale=None, n_iter_rescale=np.inf, gradient_mask=np.ones, grad_scale_fix=False,
+        verbose=0, rescale=None, n_iter_rescale=np.inf, gradient_mask=np.ones, grad_scale_fix=True,
         logging_dict=None, logging_key=None,
 ):
     """Batch gradient descent with momentum and individual gains.
@@ -246,7 +246,8 @@ def gradient_descent(
             error, grad = cf.obj_grad(y, **cf_params)
 
             if isinstance(cf, HyperbolicKL):
-                # New Fix
+                # New Fix: Inverse metric tensor factor that multiplies the derivative of the cost function
+                # leading to a correct gradient update step
                 if grad_scale_fix:
                     grad = ((1. - np.linalg.norm(y.reshape(n_samples, 2), axis=1)
                             ** 2) ** 2)[:, np.newaxis] * grad.reshape(n_samples, 2) / 4
